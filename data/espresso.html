@@ -507,7 +507,7 @@ textarea:focus{border-color:var(--crema);}
 // ============================================================
 // CONSTANTS & DATA
 // ============================================================
-const APP_VERSION='4.5';
+const APP_VERSION='4.5.1';
 const KAFFEES_DEFAULT=["Gorilla Superbar Crema","Dinzler Roma","Dinzler il Gustoso","Dinzler Lazise","Dinzler Modena","Dinzler Venezia","Geisenhofer House Blend","Passalacqua Mehari","Kimbo Espresso Napoli"];
 const AROMEN=["Schokolade","Nuss","Karamell","Frucht","Blume","Asche","Rauch","Gewürz","Tabak","Holz","Zitrus","Beere","Vanille"];
 const CREMAS=["Dicht & Haselnuss ✓","Tigerstreifig ★","Dunkel & Stark","Hell & Dünn","Grobporig"];
@@ -1020,7 +1020,34 @@ function generateTips(shot){
     tips.push({tip:`Pre-Infusion ${pi}s ist sehr lang. Bitterkeit könnte daher kommen – bei ${roastLabel} max. 4-5s PI empfohlen.`,followup:"Weniger Bitterkeit bei kürzerer PI?"});
   }
 
-  // FLOW PROBLEMS
+  // FLOW ANALYSIS (WeighMyBru² Waage — objektive Messung, höhere Priorität)
+  const flowAvg=shot.flowAvg||null;
+  const flowPeak=shot.flowPeak||null;
+  const flowChannels=shot.flowChannels||[];
+  const flowSpike=flowAvg&&flowPeak?(flowPeak/flowAvg):null;
+
+  // Channeling erkannt (rote Marker in der Kurve)
+  if(flowChannels.length>0&&tips.length<2){
+    const atSec=flowChannels.map(t=>Math.round(t/1000)+'s').join(', ');
+    tips.push({tip:`Waage hat Channeling erkannt (Flow-Spike bei ${atSec}): Wasser hat einen Kanal durch den Puck gebrochen. WDT-Nadeln tiefer einstechen und alle Schichten lockern. Tamping-Druck gleichmäßiger halten – IMS 26.5er: max. 15–18kg. Pre-Infusion 3–4s reduziert Channeling-Risiko deutlich.`,followup:"War der Bezug gleichmäßiger ohne Spike?"});
+  }
+
+  // Ø-Flow zu hoch → Mahlung zu grob / zu wenig Widerstand
+  if(flowAvg&&flowAvg>2.2&&!flowChannels.length&&tips.length<2){
+    tips.push({tip:`Ø-Flow ${flowAvg} g/s (Ziel 0.8–2.0 g/s): Wasser fließt zu schnell durch den Puck. Mahlung 1 Klick feiner (Eureka Libra: Mahlrad nach unten). Tamping-Druck etwas erhöhen. Bei Ratio >1:2,5 auch Output früher stoppen.`,followup:"War der Flow danach gleichmäßiger?"});
+  }
+
+  // Ø-Flow zu niedrig → Mahlung zu fein / zu fest getampt
+  if(flowAvg&&flowAvg<0.7&&tips.length<2){
+    tips.push({tip:`Ø-Flow ${flowAvg} g/s (Ziel 0.8–2.0 g/s): Puck bietet zu viel Widerstand. Mahlung 1 Klick gröber (Eureka Libra: Mahlrad nach oben). Tamping-Druck leicht reduzieren. Bezugszeit >38s ist ein weiterer Hinweis.`,followup:"War der Flow danach höher?"});
+  }
+
+  // Flow sehr ungleichmäßig (hoher Peak relativ zum Ø) aber kein klares Channeling
+  if(flowSpike&&flowSpike>2.5&&!flowChannels.length&&tips.length<2){
+    tips.push({tip:`Flow-Kurve sehr ungleichmäßig (Peak ${flowPeak} g/s, Ø ${flowAvg} g/s, Verhältnis ${flowSpike.toFixed(1)}×): Micro-Channeling oder ungleichmäßige Puck-Präparation. WDT sorgfältiger wiederholen. Pre-Infusion 3–4s gibt dem Wasser Zeit den Puck gleichmäßig zu benetzen bevor der Druck aufgebaut wird.`,followup:"War die Kurve beim nächsten Bezug gleichmäßiger?"});
+  }
+
+  // FLOW PROBLEMS (ratio+zeit basiert)
   if(ratio&&zeit){
     if(ratio<2&&zeit>32){tips.push({tip:"Zu langsam & zu wenig Output (<1:2, >32s): Mahlgrad 1 Klick gröber. Eureka Libra: Mahlrad nach oben. Prüfe ob Puck-Screen nicht zu nass ist (begrenzt Durchfluss).",followup:"War Zeit/Output danach besser?"});}
     else if(ratio>2.7&&zeit<25){tips.push({tip:"Zu schnell & zu viel Output (>1:2,7, <25s): Channeling oder Mahlgrad zu grob. 1 Klick feiner + WDT sorgfältig wiederholen. IMS 26.5er: Ziel 28-32s bei ~42g.",followup:"War Durchlauf danach gleichmäßiger?"});}
