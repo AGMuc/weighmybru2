@@ -2411,9 +2411,9 @@ const scale = {
           if (this._cooldown > 0) {
             this._cooldown--;
           } else if (this.autoState === 'idle') {
-            if (this.flowrate > 0.3) {
+            if (this.flowrate > 0.8) {
               this._flowHigh++;
-              if (this._flowHigh >= 2) {
+              if (this._flowHigh >= 4) {
                 // First drops detected → auto-start
                 this.autoState = 'brewing';
                 this._flowLow = 0;
@@ -2604,7 +2604,15 @@ function scaleUpdateLive() {
   const f = document.getElementById('scale-f');
   if (w) w.textContent = scale.weight.toFixed(1) + 'g';
   if (t) t.textContent = scale.timerRunning || scale.timerMs > 0 ? (scale.timerMs / 1000).toFixed(1) + 's' : '—';
-  if (f) f.textContent = scale.flowrate > 0 ? scale.flowrate.toFixed(2) + 'g/s' : '—';
+  if (f) {
+    if (scale.flowrate > 0.05) {
+      f.textContent = scale.flowrate.toFixed(2) + 'g/s';
+      f.style.color = (scale.flowrate >= 0.8 && scale.flowrate <= 2.0) ? 'var(--green)' : 'var(--red)';
+    } else {
+      f.textContent = '—';
+      f.style.color = '';
+    }
+  }
 }
 
 // ============================================================
