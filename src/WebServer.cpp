@@ -137,6 +137,11 @@ void setupWebServer(Scale &scale, FlowRate &flowRate, BluetoothScale &bluetoothS
   getCachedDecimals();        // This will cache the decimal setting
   getStoredSSID();            // This will cache WiFi credentials
 
+  // CORS: Externe Web-Apps (z.B. Espresso-App PWA) erlauben
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
   // Register API route first
   server.on("/api/dashboard", HTTP_GET, [&scale, &flowRate, &display, &battery, &bluetoothScale](AsyncWebServerRequest *request) {
     String json = "{";
@@ -654,6 +659,11 @@ void setupWebServer(Scale &scale, FlowRate &flowRate, BluetoothScale &bluetoothS
 
   // 404 Not Found handler for unmatched routes
   server.onNotFound([](AsyncWebServerRequest *request) {
+    // CORS preflight (OPTIONS) sofort beantworten
+    if (request->method() == HTTP_OPTIONS) {
+      request->send(204);
+      return;
+    }
     String path = request->url();
     // If the request is for an API endpoint that doesn't exist, return 404
     if (path.startsWith("/api/")) {
