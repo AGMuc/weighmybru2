@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Espresso Trainer v4.4</title>
+<title>Espresso Trainer v4.5</title>
 <style>
 :root { --font-scale:1; --safe-top:env(safe-area-inset-top,44px); --safe-bot:env(safe-area-inset-bottom,20px); }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -474,7 +474,7 @@ textarea:focus{border-color:var(--crema);}
         <div class="setting-row"><div><div class="setting-label">Mühle</div><div class="setting-sub">Eureka Mignon Libra · Finecoar Dial</div></div></div>
         <div class="setting-row"><div><div class="setting-label">Korb</div><div class="setting-sub">IMS B702TH26.5M · 18-20g Dark</div></div></div>
         <div class="setting-row"><div><div class="setting-label">Pre-Infusion</div><div class="setting-sub">Victoria: 0-8s durch Bezugstaste geregelt</div></div></div>
-        <div class="setting-row"><div><div class="setting-label">Version</div><div class="setting-sub" id="version-display">v4.4 · Mai 2026 · Verlaufs-Analyse: Mahlgrad/Temp-Änderungen → Score-Wirkung</div></div></div>
+        <div class="setting-row"><div><div class="setting-label">Version</div><div class="setting-sub" id="version-display">v4.5 · Mai 2026 · Flow-Analyse: Ø/Peak g/s, Kurve & Channeling-Erkennung</div></div></div>
       </div>
       <div class="card">
         <div class="card-title">WeighMyBru² Waage</div>
@@ -507,7 +507,7 @@ textarea:focus{border-color:var(--crema);}
 // ============================================================
 // CONSTANTS & DATA
 // ============================================================
-const APP_VERSION='4.4';
+const APP_VERSION='4.5';
 const KAFFEES_DEFAULT=["Gorilla Superbar Crema","Dinzler Roma","Dinzler il Gustoso","Dinzler Lazise","Dinzler Modena","Dinzler Venezia","Geisenhofer House Blend","Passalacqua Mehari","Kimbo Espresso Napoli"];
 const AROMEN=["Schokolade","Nuss","Karamell","Frucht","Blume","Asche","Rauch","Gewürz","Tabak","Holz","Zitrus","Beere","Vanille"];
 const CREMAS=["Dicht & Haselnuss ✓","Tigerstreifig ★","Dunkel & Stark","Hell & Dünn","Grobporig"];
@@ -1366,6 +1366,14 @@ function saveShot(){
     ts:now.toLocaleDateString('de-DE')+' '+now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),
     timestamp:now.getTime()
   };
+  // Flow-Analyse von der Waage übernehmen (falls Bezug über die Waage lief)
+  if(scale.lastBrew && scale.lastBrew.samples && scale.lastBrew.samples.length>1){
+    shot.flowAvg=scale.lastBrew.avg;
+    shot.flowPeak=scale.lastBrew.peak;
+    shot.flowData=scale.lastBrew.samples.map(s=>[s.t,+s.f.toFixed(2)]);
+    shot.flowChannels=(scale.lastBrew.channels||[]).map(c=>c.t);
+    scale.lastBrew=null;
+  }
   const tipsResult=generateTips(shot);
   if(tipsResult.length)shot.tips=tipsResult.map(t=>({...t,resolved:null}));
   if(!data[curKaffee])data[curKaffee]=[];
@@ -1441,7 +1449,13 @@ function renderHistory(){
          <button class="note-edit-btn" onclick="startEditNote(${i})">${s.notizen?'✏':'＋ Notiz'}</button>
          <button class="note-edit-btn" onclick="showAIPrompt(null,${i})">🤖 KI-Hilfe</button>`;
     const empfBadge=s.empfehlung==='ja'?'<span style="color:#8fdc5a"> · ✓ Kaufen</span>':s.empfehlung==='nein'?'<span style="color:#dc5a5a"> · ✗ Nicht kaufen</span>':s.empfehlung==='vl'?'<span style="color:var(--crema)"> · ? Evtl.</span>':'';
-    return `<div class="shot-item"><div class="shot-row-top"><div class="shot-info"><div class="shot-main">#${i+1} · ${s.doseIn}g→<strong style="color:var(--crema)">${s.doseOut||'?'}g</strong> · ${s.zeit||'?'}s · MG${s.mahlgrad||'?'}${s.temp?' · '+s.temp+'°C':''}${s.pi?' · PI'+s.pi+'s':''} · ${'★'.repeat(s.sterne)}</div><div class="shot-meta">1:${s.ratio||'?'} · Score ${s.score} · ${s.ts}${empfBadge}</div>${noteHtml}</div><button class="shot-del" onclick="deleteShot('${kEsc}',${i})">✕</button></div>${cmpHtml}${tipHtml}</div>`;
+    let flowHtml='';
+    if(s.flowData&&s.flowData.length>1){
+      const ch=s.flowChannels||[];
+      const chWarn=ch.length?`<span style="color:var(--red)"> · ⚠ Channeling ${ch.map(t=>(t/1000).toFixed(0)+'s').join(', ')}</span>`:'';
+      flowHtml=`<div class="shot-flow" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)"><div style="font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);letter-spacing:.06em">FLOW · Ø ${s.flowAvg||'?'} g/s · Peak ${s.flowPeak||'?'} g/s${chWarn}</div>${flowSparkline(s.flowData,ch)}</div>`;
+    }
+    return `<div class="shot-item"><div class="shot-row-top"><div class="shot-info"><div class="shot-main">#${i+1} · ${s.doseIn}g→<strong style="color:var(--crema)">${s.doseOut||'?'}g</strong> · ${s.zeit||'?'}s · MG${s.mahlgrad||'?'}${s.temp?' · '+s.temp+'°C':''}${s.pi?' · PI'+s.pi+'s':''} · ${'★'.repeat(s.sterne)}</div><div class="shot-meta">1:${s.ratio||'?'} · Score ${s.score} · ${s.ts}${empfBadge}</div>${noteHtml}</div><button class="shot-del" onclick="deleteShot('${kEsc}',${i})">✕</button></div>${cmpHtml}${tipHtml}${flowHtml}</div>`;
   }).join('');
 
   if(shots.length>1){const avgS=Math.round(shots.reduce((a,s)=>a+s.score,0)/shots.length);list.innerHTML+=`<div class="shots-footer">Ø ${avgS} · Best ${Math.max(...shots.map(s=>s.score))} · Top-3 Ø ${top3Avg(shots)}</div>`;}
@@ -2332,6 +2346,9 @@ function applyTrainerRec(values) {
 const scale = {
   url: null, connected: false,
   weight: 0, timerMs: 0, timerRunning: false, flowrate: 0, _poll: null,
+  // Flow-Aufzeichnung
+  _flowSamples: [],    // {t, f} während des Bezugs
+  lastBrew: null,      // {avg, peak, channels, samples} nach Bezug-Ende
   // Auto-detect state
   autoMode: true,
   autoState: 'idle',   // 'idle' | 'brewing' | 'done'
@@ -2374,6 +2391,7 @@ const scale = {
                 this.autoState = 'brewing';
                 this._flowLow = 0;
                 this._flowHigh = 0;
+                this._flowSamples = []; // neue Flow-Aufzeichnung starten
                 try {
                   await this.tare();
                   await this.resetTimer();
@@ -2391,6 +2409,7 @@ const scale = {
                 // Flow stopped for ~3s → auto-stop
                 this.autoState = 'done';
                 try { await this.stopTimer(); } catch(e) {}
+                this.lastBrew = analyzeFlow(this._flowSamples); // Flow-Analyse finalisieren
                 if (this.weight !== 0) document.getElementById('f-doseOut').value = this.weight.toFixed(1);
                 if (this.timerMs > 0) document.getElementById('f-zeit').value = Math.round(this.timerMs / 1000);
                 updateRatio(); updateLiveTip();
@@ -2403,13 +2422,59 @@ const scale = {
           }
         }
 
+        // Flow-Kurve aufzeichnen (auch im Manuell-Modus, da autoState dort ebenfalls 'brewing' ist)
+        if (this.autoState === 'brewing') {
+          this._flowSamples.push({ t: this.timerMs, f: this.flowrate });
+        }
+
         scaleUpdateLive();
       } catch(e) {}
     }, 200);
   },
   stopPoll() { if (this._poll) { clearInterval(this._poll); this._poll = null; } },
-  resetAuto() { this.autoState = 'idle'; this._flowHigh = 0; this._flowLow = 0; this._cooldown = 0; scaleRenderBrewBar(); }
+  resetAuto() { this.autoState = 'idle'; this._flowHigh = 0; this._flowLow = 0; this._cooldown = 0; this._flowSamples = []; this.lastBrew = null; scaleRenderBrewBar(); }
 };
+
+// ============================================================
+// FLOW-ANALYSE (Ø/Peak + Channeling-Erkennung + Sparkline)
+// ============================================================
+function analyzeFlow(samples) {
+  if (!samples || samples.length < 3) return null;
+  const peak = Math.max(...samples.map(s => s.f));
+  const active = samples.filter(s => s.f > 0.2);
+  const avg = active.length ? active.reduce((a, s) => a + s.f, 0) / active.length : 0;
+  // Channeling = plötzlicher Flow-Anstieg nach der Anlaufphase (Wasser bricht durch den Puck)
+  const channels = [];
+  for (let i = 2; i < samples.length; i++) {
+    if (samples[i].t < 4000) continue; // erste 4s = normaler Anlauf, ignorieren
+    const rise = samples[i].f - samples[i - 2].f;
+    if (rise > 1.2 && samples[i].f > peak * 0.55) {
+      if (!channels.length || samples[i].t - channels[channels.length - 1].t > 1800) {
+        channels.push({ t: samples[i].t, f: samples[i].f });
+      }
+    }
+  }
+  return { avg: +avg.toFixed(2), peak: +peak.toFixed(2), channels, samples };
+}
+
+// SVG-Sparkline aus gespeicherten Flow-Daten ([[t_ms,f],...]) + Channeling-Marker
+function flowSparkline(data, channels) {
+  if (!data || data.length < 2) return '';
+  const w = 200, h = 34;
+  const maxT = data[data.length - 1][0] || 1;
+  const maxF = Math.max(...data.map(d => d[1]), 0.5);
+  const pts = data.map(d => {
+    const x = (d[0] / maxT) * w;
+    const y = h - (d[1] / maxF) * (h - 2) - 1;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+  let marks = '';
+  (channels || []).forEach(t => {
+    const x = (t / maxT) * w;
+    marks += `<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${h}" stroke="var(--red)" stroke-width="1" stroke-dasharray="2,2" opacity="0.75"/>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" style="display:block;margin:3px 0;overflow:visible"><polyline points="${pts}" fill="none" stroke="var(--crema)" stroke-width="1.5" stroke-linejoin="round"/>${marks}</svg>`;
+}
 
 function scaleConnect() {
   const raw = (document.getElementById('scale-ip-input').value.trim()) || 'weighmybru.local';
@@ -2444,6 +2509,8 @@ async function scaleStartBrew() {
     scale.autoState = 'brewing';
     scale._flowLow = 0;
     scale._cooldown = 0;
+    scale._flowSamples = []; // neue Flow-Aufzeichnung starten
+    scale.lastBrew = null;
     scale.startPoll(); // no-op if already polling
     scaleRenderBrewBar();
   } catch(e) {
@@ -2455,6 +2522,7 @@ async function scaleStartBrew() {
 async function scaleStopBrew() {
   try {
     await scale.stopTimer();
+    scale.lastBrew = analyzeFlow(scale._flowSamples); // Flow-Analyse finalisieren
     if (scale.weight !== 0) document.getElementById('f-doseOut').value = scale.weight.toFixed(1);
     if (scale.timerMs > 0) document.getElementById('f-zeit').value = Math.round(scale.timerMs / 1000);
     updateRatio(); updateLiveTip();
