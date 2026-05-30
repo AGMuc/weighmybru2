@@ -1,0 +1,2471 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Espresso">
+<meta name="theme-color" content="#1a0f0a">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Espresso Trainer v4.4</title>
+<style>
+:root { --font-scale:1; --safe-top:env(safe-area-inset-top,44px); --safe-bot:env(safe-area-inset-bottom,20px); }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+body{font-family:'Georgia',serif;}
+
+/* THEMES */
+body.theme-dark{--bg:#1a0f0a;--bg2:#241408;--bg3:#2d1a0d;--crema:#C8974A;--crema2:rgba(200,151,74,0.13);--cream:#F0E6CC;--mid:#7a5a3a;--light:#d4b896;--border:rgba(200,151,74,0.25);--border2:rgba(200,151,74,0.12);--green:#5ab83a;--red:#c0392b;--card:rgba(255,255,255,0.04);--text:#F0E6CC;--text2:#d4b896;--text3:#7a5a3a;}
+body.theme-light{--bg:#f5f0e8;--bg2:#ede5d5;--bg3:#e5dac8;--crema:#8B5E1A;--crema2:rgba(139,94,26,0.1);--cream:#2C1810;--mid:#6B4F2A;--light:#4a3520;--border:rgba(139,94,26,0.3);--border2:rgba(139,94,26,0.15);--green:#2d7a0f;--red:#8a1f1f;--card:rgba(0,0,0,0.04);--text:#2C1810;--text2:#4a3520;--text3:#6B4F2A;}
+body.theme-contrast{--bg:#000;--bg2:#111;--bg3:#1a1a1a;--crema:#FFB347;--crema2:rgba(255,179,71,0.18);--cream:#fff;--mid:#aaa;--light:#ddd;--border:rgba(255,179,71,0.45);--border2:rgba(255,179,71,0.22);--green:#00FF88;--red:#FF4444;--card:rgba(255,255,255,0.06);--text:#fff;--text2:#ddd;--text3:#aaa;}
+
+body{background:var(--bg);color:var(--text);}
+
+/* HEADER */
+#header{padding:calc(var(--safe-top)+8px) 16px 10px;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0;text-align:center;position:relative;}
+#header h1{font-size:calc(1.15rem*var(--font-scale));color:var(--crema);letter-spacing:.08em;font-weight:normal;}
+#header p{font-size:calc(.54rem*var(--font-scale));color:var(--mid);letter-spacing:.18em;text-transform:uppercase;margin-top:2px;font-family:'Courier New',monospace;}
+
+/* TABS */
+#tabbar{display:flex;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0;}
+.tab{flex:1;padding:9px 0;font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));letter-spacing:.07em;text-transform:uppercase;color:var(--mid);border:none;background:none;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;}
+.tab.active{color:var(--crema);border-bottom-color:var(--crema);}
+
+/* CONTENT */
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(var(--safe-bot)+12px);}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:12px;}
+.card-title{font-size:calc(.9rem*var(--font-scale));color:var(--crema);margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.badge{font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));background:rgba(90,184,58,0.15);border:1px solid rgba(90,184,58,0.4);color:var(--green);padding:2px 6px;border-radius:10px;}
+
+/* SECTION LABELS */
+.sl{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--crema);letter-spacing:.16em;text-transform:uppercase;margin:12px 0 8px;display:flex;align-items:center;gap:8px;}
+.sl::after{content:'';flex:1;height:1px;background:var(--border2);}
+
+/* INPUTS */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
+.field label{font-family:'Courier New',monospace;font-size:calc(.51rem*var(--font-scale));color:var(--mid);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:3px;}
+.field input[type=number]{width:100%;background:rgba(128,128,128,.07);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Courier New',monospace;font-size:calc(.92rem*var(--font-scale));padding:8px 9px;outline:none;-webkit-appearance:none;}
+.field input:focus{border-color:var(--crema);}
+.prefilled{color:var(--crema)!important;opacity:.75;}
+
+/* RATIO */
+#ratio-display{font-family:'Courier New',monospace;font-size:calc(.68rem*var(--font-scale));color:var(--crema);text-align:center;margin:7px 0 3px;min-height:16px;}
+
+/* LIVE TIP */
+#live-tip{margin:9px 0 5px;padding:9px 11px;background:var(--crema2);border:1px dashed var(--border);border-left:3px solid var(--crema);border-radius:6px;font-size:calc(.66rem*var(--font-scale));color:var(--light);line-height:1.6;display:none;}
+#live-tip strong{display:block;font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--crema);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px;}
+.live-tip-item+.live-tip-item{margin-top:5px;}
+
+/* DOTS */
+.dot-row{margin-bottom:11px;}
+.dot-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;}
+.dot-name{font-size:calc(.68rem*var(--font-scale));color:var(--light);display:flex;align-items:center;gap:6px;}
+.info-btn{background:var(--crema2);border:1px solid var(--border);color:var(--crema);width:15px;height:15px;border-radius:50%;font-size:calc(.53rem*var(--font-scale));cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;font-family:'Georgia',serif;font-style:italic;flex-shrink:0;}
+.dot-hints{display:flex;justify-content:space-between;font-family:'Courier New',monospace;font-size:calc(.49rem*var(--font-scale));color:var(--mid);margin-top:3px;}
+.dot-selector{display:flex;gap:6px;align-items:center;}
+.dot-btn{width:30px;height:30px;border-radius:50%;border:2px solid var(--mid);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));color:var(--mid);transition:all .12s;flex-shrink:0;}
+.dot-btn.on{background:var(--crema);border-color:var(--crema);color:var(--bg);font-weight:bold;}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.chip{font-family:'Courier New',monospace;font-size:calc(.56rem*var(--font-scale));padding:5px 9px;border-radius:6px;border:1px solid var(--mid);background:none;color:var(--light);cursor:pointer;transition:all .15s;}
+.chip.on{border-color:var(--crema);background:var(--crema2);color:var(--crema);}
+.chips-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.chips-label{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--crema);letter-spacing:.16em;text-transform:uppercase;}
+
+/* STARS */
+#stars{display:flex;gap:9px;justify-content:center;margin:3px 0 11px;}
+.star{font-size:calc(1.85rem*var(--font-scale));cursor:pointer;color:rgba(200,151,74,.2);transition:color .12s;user-select:none;}
+.star.on{color:var(--crema);}
+
+/* SCORE */
+#score-display{display:flex;align-items:center;justify-content:center;gap:13px;padding:13px;background:var(--crema2);border-radius:9px;margin-bottom:11px;}
+#score-num{font-size:calc(2.7rem*var(--font-scale));color:var(--crema);line-height:1;}
+#score-label{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--mid);letter-spacing:.1em;text-transform:uppercase;}
+
+/* TEXTAREA */
+textarea{width:100%;background:rgba(128,128,128,.06);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Georgia',serif;font-size:calc(.78rem*var(--font-scale));padding:8px 10px;min-height:50px;resize:none;outline:none;margin-bottom:3px;}
+textarea:focus{border-color:var(--crema);}
+
+/* EMPFEHLUNG */
+#empf-row{display:flex;gap:7px;margin-bottom:12px;}
+.empf-btn{flex:1;padding:9px 0;border-radius:7px;border:1px solid var(--mid);background:none;color:var(--light);font-family:'Courier New',monospace;font-size:calc(.56rem*var(--font-scale));letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.empf-btn.ja.on{background:#1e3d14;border-color:#4a9e2a;color:#8fdc5a;}
+.empf-btn.vl.on{background:#3d2e10;border-color:var(--crema);color:var(--crema);}
+.empf-btn.nein.on{background:#3d1414;border-color:#9e2a2a;color:#dc5a5a;}
+
+/* BUTTONS */
+#btn-save{width:100%;padding:13px;background:var(--crema);color:var(--bg);border:none;border-radius:9px;font-family:'Courier New',monospace;font-size:calc(.68rem*var(--font-scale));letter-spacing:.14em;text-transform:uppercase;cursor:pointer;font-weight:bold;margin-bottom:7px;transition:opacity .2s;}
+#btn-save:disabled{opacity:.35;}
+#btn-reset{width:100%;padding:9px;background:none;border:1px solid var(--border2);color:var(--mid);border-radius:7px;font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));cursor:pointer;}
+
+/* AI BUTTON */
+#btn-ai{width:100%;padding:11px;background:linear-gradient(135deg,rgba(200,151,74,0.2),rgba(200,151,74,0.05));color:var(--crema);border:1px solid var(--border);border-radius:9px;font-family:'Courier New',monospace;font-size:calc(.64rem*var(--font-scale));letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:7px;display:flex;align-items:center;justify-content:center;gap:7px;}
+
+/* SHOT ITEMS */
+.shot-item{background:rgba(128,128,128,.04);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;margin-bottom:7px;}
+.shot-row-top{display:flex;align-items:flex-start;gap:8px;}
+.shot-info{flex:1;}
+.shot-main{font-family:'Courier New',monospace;font-size:calc(.64rem*var(--font-scale));color:var(--text);line-height:1.7;}
+.shot-meta{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--mid);margin-top:1px;}
+.shot-note{font-size:calc(.58rem*var(--font-scale));color:var(--mid);font-style:italic;margin-top:2px;}
+.shot-del{background:none;border:none;color:var(--mid);font-size:1rem;cursor:pointer;padding:2px 4px;flex-shrink:0;}
+
+/* COMPARE */
+.shot-compare{margin-top:6px;padding:6px 9px;background:rgba(128,128,128,.04);border-left:2px solid var(--mid);border-radius:4px;font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));color:var(--mid);line-height:1.6;}
+.shot-compare strong{display:block;font-size:calc(.49rem*var(--font-scale));color:var(--mid);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.shot-compare.best{border-left-color:var(--crema);color:var(--crema);background:var(--crema2);}
+
+/* TIPS */
+.shot-tip{margin-top:7px;padding:7px 9px;background:var(--crema2);border-left:2px solid var(--crema);border-radius:4px;font-size:calc(.62rem*var(--font-scale));color:var(--light);line-height:1.5;}
+.shot-tip strong{display:block;font-family:'Courier New',monospace;font-size:calc(.49rem*var(--font-scale));color:var(--crema);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.shot-tip-followup{margin-top:5px;padding-top:5px;border-top:1px dashed var(--border2);font-size:calc(.58rem*var(--font-scale));color:var(--mid);}
+.yn-row{display:flex;gap:5px;margin-top:4px;}
+.yn-row button{flex:1;padding:5px;background:none;border:1px solid var(--mid);color:var(--light);border-radius:4px;font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));cursor:pointer;}
+.shot-tip-resolved{color:var(--green);font-style:italic;}
+.note-edit-btn{background:none;border:none;color:var(--mid);cursor:pointer;font-size:calc(.52rem*var(--font-scale));padding:2px 5px;opacity:.6;}
+.note-edit-btn:hover{opacity:1;color:var(--crema);}
+.note-edit-ta{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px;font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));margin-top:4px;resize:vertical;min-height:52px;}
+.followup-top-card{background:rgba(200,151,74,.1);border:1.5px solid var(--crema);border-radius:9px;padding:10px 12px;margin-bottom:10px;}
+.followup-top-title{font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));color:var(--crema);font-weight:bold;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
+.followup-top-q{font-size:calc(.63rem*var(--font-scale));color:var(--light);margin-bottom:5px;line-height:1.5;}
+.shots-footer{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--mid);text-align:right;margin-top:4px;}
+
+/* PROGRESS BARS */
+.progress-bar-wrap{height:4px;background:var(--border2);border-radius:2px;margin-top:5px;}
+.progress-bar{height:100%;background:var(--crema);border-radius:2px;transition:width .5s;}
+
+/* RANGLISTE */
+.rank-item{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:9px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:border-color .15s;}
+.rank-item:active{border-color:var(--crema);}
+.rank-item.top{border-color:rgba(200,151,74,.45);}
+.rank-num{font-size:calc(1.35rem*var(--font-scale));color:rgba(200,151,74,.3);min-width:26px;text-align:center;}
+.rank-item.top .rank-num{color:var(--crema);}
+.rank-info{flex:1;}
+.rank-name{font-size:calc(.74rem*var(--font-scale));color:var(--text);margin-bottom:3px;}
+.rank-detail{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--mid);line-height:1.8;}
+.rank-score{font-size:calc(1.45rem*var(--font-scale));color:var(--crema);}
+.rank-bar-wrap{height:3px;background:var(--border2);border-radius:2px;margin-top:5px;}
+.rank-bar{height:100%;background:var(--crema);border-radius:2px;transition:width .6s;}
+.warn{font-family:'Courier New',monospace;font-size:calc(.51rem*var(--font-scale));color:var(--mid);margin-top:2px;}
+.rank-calib-header{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);letter-spacing:.08em;text-transform:uppercase;margin:10px 0 6px;opacity:.6;}
+.rank-unranked{opacity:.65;}
+.rank-item-open{border-color:var(--crema);}
+.rank-expand{display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border2);}
+.rank-expand-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.rank-expand-label{font-family:'Courier New',monospace;font-size:calc(.47rem*var(--font-scale));color:var(--mid);letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px;}
+.rank-expand-meta{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--text);line-height:1.6;}
+.rank-expand-btns{display:flex;gap:6px;}
+.rank-expand-btn{flex:1;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--crema);font-family:'Courier New',monospace;font-size:calc(.55rem*var(--font-scale));cursor:pointer;}
+.rank-expand-btn:active{background:var(--crema2);}
+.rank-expand-btn.goto{color:var(--mid);}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stats-item{background:rgba(128,128,128,.04);border:1px solid var(--border2);border-radius:7px;padding:10px;}
+.stats-label{font-family:'Courier New',monospace;font-size:calc(.51rem*var(--font-scale));color:var(--mid);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+.stats-value{font-size:calc(1.2rem*var(--font-scale));color:var(--crema);}
+.stats-sub{font-family:'Courier New',monospace;font-size:calc(.51rem*var(--font-scale));color:var(--light);margin-top:2px;}
+
+/* TREND CHART */
+.trend-chart{height:60px;margin:10px 0;position:relative;display:flex;align-items:flex-end;gap:3px;}
+.trend-bar{flex:1;background:var(--crema2);border-radius:2px 2px 0 0;position:relative;min-height:4px;cursor:pointer;transition:background .15s;}
+.trend-bar.best{background:var(--crema);}
+.trend-bar:hover{background:rgba(200,151,74,.4);}
+
+/* ALL SHOTS */
+.all-shot-item{background:rgba(128,128,128,.03);border:1px solid var(--border2);border-radius:8px;padding:9px 11px;margin-bottom:6px;}
+.all-shot-name{font-size:calc(.7rem*var(--font-scale));color:var(--crema);margin-bottom:2px;}
+.all-shot-detail{font-family:'Courier New',monospace;font-size:calc(.56rem*var(--font-scale));color:var(--text);line-height:1.6;}
+.all-shot-meta{font-family:'Courier New',monospace;font-size:calc(.51rem*var(--font-scale));color:var(--mid);margin-top:2px;}
+
+/* REF BOX */
+.ref-box{background:var(--crema2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:12px;font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));color:var(--light);line-height:2;}
+.ref-box span{color:var(--crema);}
+
+/* ACTION BUTTONS */
+.action-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.action-btn{flex:1;min-width:70px;padding:8px 5px;background:var(--crema2);border:1px solid var(--border);color:var(--crema);border-radius:7px;font-family:'Courier New',monospace;font-size:calc(.55rem*var(--font-scale));letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:all .15s;text-align:center;}
+.action-btn.green{background:rgba(90,184,58,.1);border-color:rgba(90,184,58,.4);color:var(--green);}
+.action-btn.ai{background:linear-gradient(135deg,rgba(200,151,74,.2),rgba(200,151,74,.05));border-color:var(--crema);}
+.action-btn:active{opacity:.7;}
+
+/* PILLS */
+#kaffee-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:13px;justify-content:center;}
+.pill{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));letter-spacing:.05em;text-transform:uppercase;padding:6px 10px;border-radius:18px;border:1px solid var(--mid);background:none;color:var(--light);cursor:pointer;transition:all .18s;}
+.pill.has-data{border-color:var(--crema);color:var(--crema);}
+.pill.active{background:var(--crema);color:var(--bg);border-color:var(--crema);font-weight:bold;}
+.pill.add-pill{border-style:dashed;}
+
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border2);}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:calc(.76rem*var(--font-scale));color:var(--text);}
+.setting-sub{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--mid);margin-top:2px;}
+.setting-control{display:flex;gap:6px;align-items:center;}
+.skin-btn{padding:5px 9px;border-radius:5px;border:1px solid var(--mid);background:none;color:var(--mid);font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));cursor:pointer;transition:all .15s;}
+.skin-btn.active{background:var(--crema);border-color:var(--crema);color:var(--bg);}
+.font-btn{width:30px;height:30px;border-radius:5px;border:1px solid var(--mid);background:none;color:var(--mid);font-family:'Courier New',monospace;font-size:calc(.88rem*var(--font-scale));cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* DASHBOARD */
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.dash-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.dash-num{font-size:calc(1.8rem*var(--font-scale));color:var(--crema);line-height:1;margin-bottom:3px;}
+.dash-label{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);letter-spacing:.1em;text-transform:uppercase;}
+.calibration-bar{margin:8px 0;}
+.cal-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.cal-name{font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--light);min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cal-bar-wrap{flex:1;height:6px;background:var(--border2);border-radius:3px;}
+.cal-bar{height:100%;border-radius:3px;transition:width .5s;}
+.cal-count{font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);min-width:30px;text-align:right;}
+
+/* MODAL */
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px 16px 0 0;padding:18px 16px calc(var(--safe-bot)+18px);width:100%;max-width:500px;max-height:85vh;overflow-y:auto;}
+.modal h3{color:var(--crema);font-size:calc(.96rem*var(--font-scale));margin-bottom:10px;font-weight:normal;}
+.modal p{font-size:calc(.74rem*var(--font-scale));color:var(--text);line-height:1.7;margin-bottom:8px;}
+.modal-close{margin-top:12px;width:100%;padding:11px;background:var(--crema);color:var(--bg);border:none;border-radius:8px;font-family:'Courier New',monospace;font-size:calc(.63rem*var(--font-scale));letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:bold;}
+.crema-examples{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.crema-ex{border-radius:8px;overflow:hidden;border:1px solid var(--border);text-align:center;}
+.crema-ex-img{width:100%;height:70px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.crema-ex-label{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);padding:4px;background:var(--bg3);}
+
+/* AI JSON MODAL */
+.ai-json-area{width:100%;height:180px;font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));background:var(--bg3);color:var(--light);border:1px solid var(--border);border-radius:7px;padding:8px;resize:none;margin:8px 0;}
+.copy-btn{width:100%;padding:10px;background:var(--crema);color:var(--bg);border:none;border-radius:7px;font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-weight:bold;margin-bottom:7px;}
+.copy-btn.copied{background:var(--green);color:#fff;}
+
+/* TOAST */
+#sw-toast{position:fixed;bottom:calc(var(--safe-bot)+60px);left:50%;transform:translateX(-50%);background:var(--crema);color:var(--bg);padding:7px 15px;border-radius:18px;font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));z-index:200;display:none;white-space:nowrap;}
+
+.empty{text-align:center;color:var(--mid);font-family:'Courier New',monospace;font-size:calc(.64rem*var(--font-scale));padding:28px 0;}
+
+/* TRAINER RECOMMENDATION */
+.trainer-card{background:linear-gradient(135deg,rgba(200,151,74,0.12),rgba(200,151,74,0.04));border:1px solid var(--crema);border-radius:12px;padding:13px;margin-bottom:12px;}
+.trainer-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.trainer-icon{font-size:1.2rem;}
+.trainer-title{font-size:calc(.82rem*var(--font-scale));color:var(--crema);font-weight:normal;}
+.trainer-subtitle{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);}
+.trainer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.trainer-param{background:rgba(0,0,0,.15);border-radius:8px;padding:9px;text-align:center;}
+.trainer-param-label{font-family:'Courier New',monospace;font-size:calc(.49rem*var(--font-scale));color:var(--mid);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
+.trainer-param-value{font-size:calc(1.05rem*var(--font-scale));color:var(--crema);line-height:1.2;}
+.trainer-param-sub{font-family:'Courier New',monospace;font-size:calc(.48rem*var(--font-scale));color:var(--mid);margin-top:2px;}
+.trainer-source{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);text-align:center;margin-bottom:8px;}
+.trainer-history{margin-top:8px;padding-top:8px;border-top:1px solid var(--border2);}
+.trainer-history-title{font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.trainer-shot-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.trainer-shot-bar-wrap{flex:1;height:5px;background:var(--border2);border-radius:3px;}
+.trainer-shot-bar{height:100%;border-radius:3px;transition:width .4s;}
+.trainer-shot-info{font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);min-width:80px;text-align:right;}
+.trainer-trends{margin-top:8px;padding-top:8px;border-top:1px solid var(--border2);}
+.trainer-trend-row{margin-bottom:7px;}
+.trainer-trend-row:last-child{margin-bottom:0;}
+.trainer-trend-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px;}
+.trainer-trend-param{font-family:'Courier New',monospace;font-size:calc(.56rem*var(--font-scale));color:var(--text);}
+.trainer-trend-verdict{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));font-weight:bold;}
+.trainer-trend-detail{font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);margin-top:2px;}
+.trainer-apply-btn{width:100%;padding:8px;background:var(--crema2);border:1px solid var(--border);color:var(--crema);border-radius:7px;font-family:'Courier New',monospace;font-size:calc(.58rem*var(--font-scale));letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-top:8px;}
+/* WEIGHMYBRU² */
+.scale-bar{background:var(--crema2);border:1px solid rgba(90,184,58,0.35);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.scale-live{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.scale-live-group{text-align:center;flex:1;}
+.scale-live-label{font-family:'Courier New',monospace;font-size:calc(.48rem*var(--font-scale));color:var(--mid);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;}
+.scale-live-val{font-size:calc(1.05rem*var(--font-scale));color:var(--green);font-weight:bold;}
+.scale-btns{display:flex;gap:6px;}
+.scale-btn{flex:1;padding:8px 4px;border-radius:7px;border:1px solid var(--border);background:var(--crema2);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));cursor:pointer;}
+.scale-btn.start{border-color:var(--green);color:var(--green);}
+.scale-btn.stop{border-color:var(--red);color:var(--red);}
+.scale-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
+.scale-dot.on{background:var(--green);}.scale-dot.off{background:var(--mid);}
+/* INFO-VISUALS */
+.info-visual{margin:10px 0;padding:10px;background:var(--crema2);border:1px solid var(--border);border-radius:8px;}
+.info-visual-title{font-family:'Courier New',monospace;font-size:calc(.55rem*var(--font-scale));color:var(--mid);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;}
+.info-scale{display:flex;align-items:center;gap:2px;height:28px;border-radius:6px;overflow:hidden;}
+.info-scale-seg{flex:1;display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-size:calc(.55rem*var(--font-scale));color:#fff;font-weight:bold;}
+.info-scale-labels{display:flex;justify-content:space-between;font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);margin-top:3px;}
+.info-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border2);font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));}
+.info-row:last-child{border-bottom:none;}
+.info-row-emoji{font-size:1.1rem;flex-shrink:0;width:26px;text-align:center;}
+.info-row-label{font-weight:bold;color:var(--crema);min-width:60px;}
+.info-row-text{flex:1;color:var(--text);}
+.info-target{background:rgba(90,184,58,0.15);border-left:3px solid var(--green);padding:7px 10px;border-radius:5px;font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));margin:8px 0;}
+.info-warn{background:rgba(192,57,43,0.1);border-left:3px solid var(--red);padding:7px 10px;border-radius:5px;font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));margin:8px 0;}
+/* VERKOSTUNG */
+.verk-card{background:linear-gradient(135deg,rgba(200,151,74,0.18),rgba(200,151,74,0.05));border:1px solid var(--crema);border-radius:10px;padding:12px;margin-bottom:8px;}
+.verk-title{font-family:'Courier New',monospace;font-size:calc(.66rem*var(--font-scale));color:var(--crema);font-weight:bold;margin-bottom:4px;}
+.verk-context{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);margin-bottom:8px;font-style:italic;}
+.verk-question{font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));color:var(--mid);margin-bottom:10px;}
+.verk-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.verk-opt{padding:9px 7px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));cursor:pointer;text-align:left;line-height:1.4;transition:all .15s;}
+.verk-opt:hover,.verk-opt:active{border-color:var(--crema);background:var(--crema2);}
+.verk-opt.ideal{border-color:rgba(90,184,58,0.5);}
+.verk-opt-hint{color:var(--mid);font-size:.85em;display:block;margin-top:3px;}
+.verk-progress{display:flex;gap:3px;margin-top:10px;}
+.verk-prog-dot{flex:1;height:4px;border-radius:2px;background:var(--border2);}
+.verk-prog-dot.done{background:var(--green);}
+.verk-prog-dot.current{background:var(--crema);}
+.verk-skip-btn{width:100%;margin-top:8px;padding:7px;background:none;border:1px dashed var(--border);color:var(--mid);border-radius:7px;font-family:'Courier New',monospace;font-size:calc(.55rem*var(--font-scale));cursor:pointer;}
+.verk-skip-btn:active{background:var(--crema2);}
+.verk-hint-line{font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);margin-bottom:8px;font-style:italic;line-height:1.5;}
+</style>
+</head>
+<body class="theme-dark">
+<div id="app">
+  <div id="header">
+    <h1>☕ Espresso Trainer</h1>
+    <p>Lelit Victoria · Eureka Libra · IMS 26.5M</p>
+  </div>
+  <div id="tabbar">
+    <button class="tab active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab" data-tab="bewertung" onclick="switchTab('bewertung')">Bezug</button>
+    <button class="tab" data-tab="rangliste" onclick="switchTab('rangliste')">Rangliste</button>
+    <button class="tab" data-tab="einstellungen" onclick="switchTab('einstellungen')">Einst.</button>
+  </div>
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard">
+      <div id="dashboard-content"></div>
+    </div>
+
+    <!-- BEWERTUNG -->
+    <div id="tab-bewertung" style="display:none">
+      <div class="ref-box">
+        <span>Ref A:</span> 18g→36g/30s=1:2 kräftig &nbsp;|&nbsp; <span>Ref B★:</span> 18g→42g/30s=1:2,33 Sweetspot
+      </div>
+      <div id="kaffee-pills"></div>
+      <div id="form-area" style="display:none">
+        <div id="trainer-rec" style="display:none"></div>
+        <div class="card">
+          <div class="card-title">
+            <span id="form-kaffee-name"></span>
+            <span id="form-badge" class="badge" style="display:none"></span>
+          </div>
+          <div class="sl">Bezug</div>
+          <div id="scale-brew-bar" style="display:none"></div>
+          <div class="grid2">
+            <div class="field"><label>Dose Ein (g)</label><input type="number" id="f-doseIn" value="18" step="0.1" inputmode="decimal" oninput="updateRatio()"></div>
+            <div class="field"><label>Yield Aus (g)</label><input type="number" id="f-doseOut" placeholder="z.B. 42" step="0.1" inputmode="decimal" oninput="updateRatio()"></div>
+            <div class="field"><label>Zeit ab 1. Tropfen</label><input type="number" id="f-zeit" placeholder="Sek., z.B. 30" inputmode="numeric" oninput="updateLiveTip()"></div>
+            <div class="field"><label>Mahlgrad</label><input type="number" id="f-mahlgrad" placeholder="z.B. 4" inputmode="decimal" step="0.5" oninput="updateLiveTip()"></div>
+            <div class="field"><label>Brühtemp (°C)</label><input type="number" id="f-temp" placeholder="z.B. 93" inputmode="numeric" oninput="updateLiveTip()"></div>
+            <div class="field"><label>Pre-Infusion (s)</label><input type="number" id="f-pi" placeholder="0-8" inputmode="decimal" step="0.5" oninput="updateLiveTip()"></div>
+          </div>
+          <div id="ratio-display"></div>
+          <div id="live-tip"></div>
+
+          <!-- GEFÜHRTE VERKOSTUNG (zuerst – setzt Slider/Aromen/Crema vor) -->
+          <div class="sl" style="margin-top:14px">Geführte Verkostung <button class="info-btn" onclick="toggleVerkostung()" id="verk-toggle-btn" style="margin-left:6px;font-size:.7rem;padding:2px 7px">▶ starten</button><button class="info-btn" onclick="showVerkInfo()" style="margin-left:4px">i</button></div>
+          <div id="verk-assistant" style="display:none"></div>
+
+          <div class="sl" style="margin-top:14px">Geschmack <span style="font-size:.65em;color:var(--mid);font-weight:normal">– nach Verkostung anpassen</span></div>
+          <div id="sliders"></div>
+          <div class="chips-header">
+            <span class="chips-label">Aromen</span>
+            <button class="info-btn" onclick="showAromaInfo()">i</button>
+          </div>
+          <div class="chips" id="aromen-chips"></div>
+          <div class="chips-header" style="margin-top:10px">
+            <span class="chips-label">Crema</span>
+            <button class="info-btn" onclick="showCremaInfo()">i</button>
+          </div>
+          <div class="chips" id="crema-chips"></div>
+
+          <div class="sl" style="margin-top:14px">Gesamteindruck</div>
+          <!-- 4 Optionen statt Sterne -->
+          <div id="gesamt-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <button class="gesamt-btn" data-v="1" onclick="setGesamt(1)" style="padding:10px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--crema2);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.7rem*var(--font-scale));cursor:pointer;transition:all .2s">
+              😖<br><strong>Nicht gut</strong><br><span style="font-size:.8em;color:var(--mid)">Würde ich nochmal anders machen</span>
+            </button>
+            <button class="gesamt-btn" data-v="2" onclick="setGesamt(2)" style="padding:10px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--crema2);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.7rem*var(--font-scale));cursor:pointer;transition:all .2s">
+              😐<br><strong>Geht so</strong><br><span style="font-size:.8em;color:var(--mid)">Trinkbar, aber ausbaufähig</span>
+            </button>
+            <button class="gesamt-btn" data-v="3" onclick="setGesamt(3)" style="padding:10px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--crema2);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.7rem*var(--font-scale));cursor:pointer;transition:all .2s">
+              😊<br><strong>Gut</strong><br><span style="font-size:.8em;color:var(--mid)">Sauber, würde ich wiederholen</span>
+            </button>
+            <button class="gesamt-btn" data-v="4" onclick="setGesamt(4)" style="padding:10px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--crema2);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.7rem*var(--font-scale));cursor:pointer;transition:all .2s">
+              😋<br><strong>Ausgezeichnet</strong><br><span style="font-size:.8em;color:var(--mid)">Referenz-Bezug!</span>
+            </button>
+          </div>
+          <div id="score-display" style="display:none">
+            <div id="score-num">–</div>
+            <div id="score-label">Score<br><span style="font-size:.85em;opacity:.6">von 100</span></div>
+          </div>
+
+          <div class="sl">Notizen</div>
+          <textarea id="f-notizen" placeholder="Freie Notizen…"></textarea>
+          <div class="sl">Wieder kaufen?</div>
+          <div id="empf-row">
+            <button class="empf-btn ja" onclick="setEmpf('ja')">✓ Ja</button>
+            <button class="empf-btn vl" onclick="setEmpf('vl')">? Vielleicht</button>
+            <button class="empf-btn nein" onclick="setEmpf('nein')">✗ Nein</button>
+          </div>
+          <button id="btn-save" onclick="saveShot()" disabled>Bezug speichern</button>
+          <button id="btn-ai" onclick="showAIPrompt(null)">🤖 KI-Hilfe für diesen Bezug</button>
+          <button id="btn-reset" onclick="resetForm(false)">↺ Formular leeren</button>
+        </div>
+        <div class="card" id="history-card" style="display:none">
+          <div class="card-title">Gespeicherte Bezüge</div>
+          <div id="history-list"></div>
+        </div>
+      </div>
+      <div id="no-selection" class="empty">Kaffee oben antippen ↑</div>
+    </div>
+
+    <!-- RANGLISTE -->
+    <div id="tab-rangliste" style="display:none">
+      <div class="action-row">
+        <button class="action-btn" onclick="exportRangliste('csv')">📋 CSV</button>
+        <button class="action-btn" onclick="exportRangliste('text')">📝 Text</button>
+        <button class="action-btn ai" onclick="showAIPrompt('rangliste')">🤖 KI-Analyse</button>
+      </div>
+      <div id="rank-list"></div>
+    </div>
+
+    <!-- EINSTELLUNGEN -->
+    <div id="tab-einstellungen" style="display:none">
+      <div class="card">
+        <div class="card-title">Darstellung</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Farbschema</div><div class="setting-sub">Dunkel · Hell · Kontrast</div></div>
+          <div class="setting-control">
+            <button class="skin-btn" id="skin-dark" onclick="setSkin('dark')">🌙</button>
+            <button class="skin-btn active" id="skin-light" onclick="setSkin('light')">☀️</button>
+            <button class="skin-btn" id="skin-contrast" onclick="setSkin('contrast')">◐</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Schriftgröße</div><div class="setting-sub" id="font-scale-label">Normal (100%)</div></div>
+          <div class="setting-control">
+            <button class="font-btn" onclick="changeFontScale(-0.1)">A−</button>
+            <button class="font-btn" onclick="changeFontScale(0)">↺</button>
+            <button class="font-btn" onclick="changeFontScale(0.1)">A+</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Daten & Export</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Bezüge</div><div class="setting-sub" id="data-info">–</div></div>
+        </div>
+        <div class="action-row" style="margin-top:10px">
+          <button class="action-btn green" onclick="backupData()">💾 Backup</button>
+          <button class="action-btn green" onclick="document.getElementById('restore-input').click()">📂 Restore</button>
+          <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
+        </div>
+        <div class="action-row">
+          <button class="action-btn" onclick="exportAlle('csv')">📋 Alle CSV</button>
+          <button class="action-btn" onclick="exportAlle('text')">📝 Alle Text</button>
+          <button class="action-btn" style="background:rgba(192,57,43,.1);border-color:var(--red);color:var(--red)" onclick="clearAllData()">🗑 Löschen</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Setup</div>
+        <div class="setting-row"><div><div class="setting-label">Maschine</div><div class="setting-sub">Lelit Victoria PL91T · OPV ~9 Bar</div></div></div>
+        <div class="setting-row"><div><div class="setting-label">Mühle</div><div class="setting-sub">Eureka Mignon Libra · Finecoar Dial</div></div></div>
+        <div class="setting-row"><div><div class="setting-label">Korb</div><div class="setting-sub">IMS B702TH26.5M · 18-20g Dark</div></div></div>
+        <div class="setting-row"><div><div class="setting-label">Pre-Infusion</div><div class="setting-sub">Victoria: 0-8s durch Bezugstaste geregelt</div></div></div>
+        <div class="setting-row"><div><div class="setting-label">Version</div><div class="setting-sub" id="version-display">v4.4 · Mai 2026 · Verlaufs-Analyse: Mahlgrad/Temp-Änderungen → Score-Wirkung</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">WeighMyBru² Waage</div>
+        <div class="setting-row">
+          <div><div class="setting-label">Verbindung</div><div class="setting-sub" id="scale-conn-status"><span class="scale-dot off"></span>Nicht verbunden</div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+          <input id="scale-ip-input" type="text" placeholder="weighmybru.local" inputmode="url" autocomplete="off" style="flex:1;padding:9px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:'Courier New',monospace;font-size:calc(.7rem*var(--font-scale))">
+          <button class="action-btn" onclick="scaleConnect()">Verbinden</button>
+        </div>
+        <div id="scale-conn-err" style="font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));color:var(--red);margin-top:6px;min-height:16px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+    <button class="modal-close" onclick="closeModal()">Schließen</button>
+  </div>
+</div>
+
+<div id="sw-toast">App aktualisiert ✓</div>
+
+<script>
+// ============================================================
+// CONSTANTS & DATA
+// ============================================================
+const APP_VERSION='4.4';
+const KAFFEES_DEFAULT=["Gorilla Superbar Crema","Dinzler Roma","Dinzler il Gustoso","Dinzler Lazise","Dinzler Modena","Dinzler Venezia","Geisenhofer House Blend","Passalacqua Mehari","Kimbo Espresso Napoli"];
+const AROMEN=["Schokolade","Nuss","Karamell","Frucht","Blume","Asche","Rauch","Gewürz","Tabak","Holz","Zitrus","Beere","Vanille"];
+const CREMAS=["Dicht & Haselnuss ✓","Tigerstreifig ★","Dunkel & Stark","Hell & Dünn","Grobporig"];
+const KEY="espresso_pwa_v2",CUSTOM_KEY="espresso_custom_v1",SETTINGS_KEY="espresso_settings_v1";
+const DOT_SCALE=7;
+
+const SLIDERS=[
+  {id:"saeure",label:"Säure",lo:"niedrig",hi:"hoch",
+   info:{title:"Säure (Acidity)",text:`
+<strong style="color:var(--crema)">Was ist Säure?</strong><br>
+Nach SCAA-Definition: helle, lebendige Geschmacksqualität beim ersten Schluck – nicht zu verwechseln mit "sauer". Quelle: Chlorogen-, Apfel-, Zitronen- und Essigsäure aus der Bohne.<br>
+<div class="info-visual">
+<div class="info-visual-title">Säure-Skala (Dot-Wert)</div>
+<div class="info-scale">
+<div class="info-scale-seg" style="background:#7CB342">1</div>
+<div class="info-scale-seg" style="background:#9CCC65">2</div>
+<div class="info-scale-seg" style="background:#C0CA33">3</div>
+<div class="info-scale-seg" style="background:#FBC02D">4</div>
+<div class="info-scale-seg" style="background:#F57C00">5</div>
+<div class="info-scale-seg" style="background:#E64A19">6</div>
+<div class="info-scale-seg" style="background:#B71C1C">7</div>
+</div>
+<div class="info-scale-labels"><span>flach</span><span>ausgewogen</span><span>spitz/sauer</span></div>
+</div>
+<div class="info-row"><span class="info-row-emoji">🍇</span><span class="info-row-label">Weintraube</span><span class="info-row-text">runde, fruchtige Säure – ideal</span></div>
+<div class="info-row"><span class="info-row-emoji">🍋</span><span class="info-row-label">Zitrone</span><span class="info-row-text">spitz, aber angenehm bei Medium Roast</span></div>
+<div class="info-row"><span class="info-row-emoji">🍏</span><span class="info-row-label">Apfel</span><span class="info-row-text">trocken-sauer → eher Unterextraktion</span></div>
+<div class="info-row"><span class="info-row-emoji">⚠️</span><span class="info-row-label">Essig</span><span class="info-row-text">scharf-stechend → klar Unterextraktion</span></div>
+<div class="info-target"><strong>Ziel:</strong> Dark Roast 1–3 · Medium 2–4 · Light 3–5</div>
+<strong style="color:var(--crema)">Ursachen hoher Säure:</strong><br>
+• Unterextraktion (Mahlgrad zu grob, Zeit &lt;25s, Temp &lt;90°C)<br>
+• Helle Röstung naturgemäß säurelastig<br>
+• Dose zu niedrig (Channeling)<br><br>
+<strong style="color:var(--crema)">Lösung bei zu viel Säure:</strong><br>
+→ Mahlgrad 0,5 feiner · Temp +1°C · Zeit auf 28–32s · Pre-Infusion 3–5s
+`}},
+  {id:"bitter",label:"Bitterkeit",lo:"mild",hi:"stark",
+   info:{title:"Bitterkeit (Bitterness)",text:`
+<strong style="color:var(--crema)">Was ist Bitterkeit?</strong><br>
+Aus Chlorogensäure-Abbauprodukten und Trigonellin der Röstung. Leichte Bitterkeit (2–4) ist Teil eines balancierten Espresso – starke Bitterkeit (&gt;5) ist fast immer Überextraktion oder Defekt.<br>
+<div class="info-visual">
+<div class="info-visual-title">Bitterkeit-Spektrum</div>
+<div class="info-row"><span class="info-row-emoji">🍫</span><span class="info-row-label">Kakao</span><span class="info-row-text">edle Bitterkeit, harmonisch – ideal</span></div>
+<div class="info-row"><span class="info-row-emoji">🌰</span><span class="info-row-label">Walnussschale</span><span class="info-row-text">trocken-bitter, noch okay</span></div>
+<div class="info-row"><span class="info-row-emoji">🥬</span><span class="info-row-label">Endivie</span><span class="info-row-text">vegetativ-bitter → leichte Überextraktion</span></div>
+<div class="info-row"><span class="info-row-emoji">🚬</span><span class="info-row-label">Asche</span><span class="info-row-text">verbrannt, stechend → klar überextrahiert</span></div>
+</div>
+<div class="info-target"><strong>Ziel:</strong> Dark Roast 3–5 · Medium 2–4 · mit Robusta-Anteil +1</div>
+<div class="info-warn"><strong>Problembitter:</strong> aschig, verbrannt, gummiartig → meist Temp zu hoch (&gt;94°C) oder verschmutzter Siebträger</div>
+<strong style="color:var(--crema)">Lelit Victoria spezifisch:</strong><br>
+93°C ist Sweet Spot für Dark Roast. Ab 94,5°C kippt Bitter rasch in aschig.<br><br>
+<strong style="color:var(--crema)">Lösung bei zu viel Bitterkeit:</strong><br>
+→ Temp -1°C · Mahlgrad 0,5 gröber · Zeit kürzen auf 25–28s · Backflush mit Blindsieb täglich
+`}},
+  {id:"suesse",label:"Süße",lo:"kaum",hi:"ausgeprägt",
+   info:{title:"Süße (Sweetness)",text:`
+<strong style="color:var(--crema)">Was ist Süße?</strong><br>
+SCAA-Indikator für korrekte Extraktion: karamellisierte Zucker (Maillard-Reaktion) lösen sich nur im optimalen Fenster (EY 18–22%). Süße ist <em>der</em> Marker für gut gemachten Espresso (James Hoffmann).<br>
+<div class="info-visual">
+<div class="info-visual-title">Süße-Profile</div>
+<div class="info-row"><span class="info-row-emoji">🍯</span><span class="info-row-label">Honig</span><span class="info-row-text">fließend, blumig – Top für Medium</span></div>
+<div class="info-row"><span class="info-row-emoji">🍮</span><span class="info-row-label">Karamell</span><span class="info-row-text">dunkler, gebrannter Zucker – Dark Roast</span></div>
+<div class="info-row"><span class="info-row-emoji">🍫</span><span class="info-row-label">Schokolade</span><span class="info-row-text">vollmundig-süß → klassischer Italiener</span></div>
+<div class="info-row"><span class="info-row-emoji">🍒</span><span class="info-row-label">Trockenfrucht</span><span class="info-row-text">Datteln, Rosinen – Robusta-Blends</span></div>
+</div>
+<div class="info-target"><strong>Ziel:</strong> 4–6 · alles ≥6 ist exzellent</div>
+<strong style="color:var(--crema)">Süße fehlt bei:</strong><br>
+• Unterextraktion (zu grob, zu kurz, zu kalt) → flach, sauer<br>
+• Überextraktion (zu fein, zu lang, zu heiß) → bitter, trocken<br>
+• Zu frische Bohne (&lt;5 Tage nach Röstung) → CO2 verdrängt Aromen<br>
+• Zu alte Bohne (&gt;6 Wochen nach Öffnung) → oxidiert<br><br>
+<strong style="color:var(--crema)">Sweet Spot Lelit Victoria + IMS:</strong><br>
+18g Dose · 40–44g Yield · 28–32s · 91–93°C · PI 3–5s<br><br>
+<em style="color:var(--mid)">Tipp: Süße steigt fast immer durch +1°C Temp und Ratio auf 1:2,3.</em>
+`}},
+  {id:"koerper",label:"Körper",lo:"dünn",hi:"vollmundig",
+   info:{title:"Körper (Body / Mouthfeel)",text:`
+<strong style="color:var(--crema)">Was ist Körper?</strong><br>
+Mouthfeel: Viskosität, Gewicht, Textur. Entsteht durch Öle (Lipide) und feine Schwebstoffe. Ein guter Espresso fühlt sich ölig-cremig, nie wässrig an.<br>
+<div class="info-visual">
+<div class="info-visual-title">Körper-Skala</div>
+<div class="info-row"><span class="info-row-emoji">💧</span><span class="info-row-label">Tee</span><span class="info-row-text">dünn, wässrig → 1–2</span></div>
+<div class="info-row"><span class="info-row-emoji">🥛</span><span class="info-row-label">Milch</span><span class="info-row-text">leicht-cremig → 3–4</span></div>
+<div class="info-row"><span class="info-row-emoji">🍶</span><span class="info-row-label">Sahne</span><span class="info-row-text">vollmundig, ölig → 5–6 (ideal)</span></div>
+<div class="info-row"><span class="info-row-emoji">🍯</span><span class="info-row-label">Sirup</span><span class="info-row-text">extrem dicht, fast klebrig → 7</span></div>
+</div>
+<div class="info-target"><strong>Ziel:</strong> 4–6 · Robusta-Blends gerne 5–7</div>
+<strong style="color:var(--crema)">Dünner Körper entsteht durch:</strong><br>
+• Ratio zu hoch (&gt;1:2,6) → zu viel Wasser<br>
+• Dose zu niedrig (&lt;17g im 18g-Korb)<br>
+• Extraktion zu kurz (&lt;25s)<br>
+• Zu grober Mahlgrad → Wasser läuft durch<br><br>
+<strong style="color:var(--crema)">Voller Körper durch:</strong><br>
+• Höherer Robusta-Anteil im Blend (mehr Crema-Öle)<br>
+• Pre-Infusion 3–5s (sättigt Puck gleichmäßig)<br>
+• Ratio 1:2,1–1:2,3<br>
+• IMS Sieb (gleichmäßiger Fluss → mehr Öle)
+`}},
+  {id:"nachklang",label:"Nachklang",lo:"kurz",hi:"lang",
+   info:{title:"Nachklang (Aftertaste / Finish)",text:`
+<strong style="color:var(--crema)">Was ist Nachklang?</strong><br>
+Wie lange und wie angenehm der Geschmack nach dem Schlucken anhält. SCAA: "linger and finish". Zeigt Bohnenqualität und Extraktionsgüte gleichzeitig.<br>
+<div class="info-visual">
+<div class="info-visual-title">Dauer & Qualität</div>
+<div class="info-row"><span class="info-row-emoji">⚡</span><span class="info-row-label">&lt;15s</span><span class="info-row-text">kurz, leer → Unterextraktion / alte Bohne</span></div>
+<div class="info-row"><span class="info-row-emoji">✅</span><span class="info-row-label">20–40s</span><span class="info-row-text">angenehmer Klang → solide</span></div>
+<div class="info-row"><span class="info-row-emoji">🍫</span><span class="info-row-label">45–60s</span><span class="info-row-text">Schokolade, Karamell, Nuss → exzellent</span></div>
+<div class="info-row"><span class="info-row-emoji">😖</span><span class="info-row-label">bitter lang</span><span class="info-row-text">verbrannt, aschig → Überextraktion</span></div>
+</div>
+<div class="info-target"><strong>Ziel:</strong> 4–6 · ein 60s-Schokoladenabgang ist Referenz</div>
+<strong style="color:var(--crema)">Problembilder:</strong><br>
+• Wässriger Abgang → Ratio zu hoch oder Dose zu niedrig<br>
+• Metallisch → Brühgruppe entkalken<br>
+• Astringent, trocken → Überextraktion<br><br>
+<strong style="color:var(--crema)">Tipp:</strong><br>
+Ratio auf 1:2,1–1:2,3 kürzen verbessert Nachklang meist deutlich. Täglicher Blindsieb-Backflush hält ihn sauber.
+`}}
+];
+
+// Konvertiert Dot-Skala (1-7) auf Score-Skala (1-10) für Berechnungen
+function dotToScore(v){ return Math.round(v * 10 / 7); }
+
+let data={},customKaffees=[],settings={skin:'light',fontScale:1};
+let curKaffee=null,curSterne=0,curEmpf=null,curAromen=[],curCrema=null;
+let editingNoteIdx=-1;
+const dotValues={saeure:4,bitter:4,suesse:4,koerper:4,nachklang:4};
+
+try{const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s);}catch(e){}
+try{const c=localStorage.getItem(CUSTOM_KEY);if(c)customKaffees=JSON.parse(c);}catch(e){}
+try{const s=localStorage.getItem(SETTINGS_KEY);if(s)settings={...settings,...JSON.parse(s)};}catch(e){}
+try{const old=localStorage.getItem("espresso_pwa_v1");if(old&&!Object.keys(data).length){data=JSON.parse(old);saveData();}}catch(e){}
+
+function saveData(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
+function saveCustom(){try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(customKaffees));}catch(e){}}
+function saveSettings(){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));}catch(e){}}
+function getAllKaffees(){return[...KAFFEES_DEFAULT,...customKaffees];}
+
+// ============================================================
+// THEME
+// ============================================================
+function applyTheme(){
+  document.body.className='theme-'+settings.skin;
+  document.documentElement.style.setProperty('--font-scale',settings.fontScale);
+  document.querySelectorAll('.skin-btn').forEach(b=>b.classList.toggle('active',b.id==='skin-'+settings.skin));
+  const pct=Math.round(settings.fontScale*100);
+  const el=document.getElementById('font-scale-label');
+  if(el)el.textContent=`${pct===100?'Normal':pct+'%'} (${pct}%)`;
+}
+function setSkin(s){settings.skin=s;saveSettings();applyTheme();}
+function changeFontScale(d){
+  if(d===0)settings.fontScale=1;
+  else settings.fontScale=Math.min(1.5,Math.max(0.7,Math.round((settings.fontScale+d)*10)/10));
+  saveSettings();applyTheme();
+}
+applyTheme();
+
+// ============================================================
+// GEFÜHRTE VERKOSTUNG (Bewertungs-Assistent)
+// ============================================================
+let verkActive = false;
+let verkStep = 0;
+
+// Liefert bohnenspezifische Verkostungs-Kontext-Infos
+function getVerkContext() {
+  if (!curKaffee) return { roast: 'dark', robusta: 0, beanLabel: '–', acidTarget: 2, bitterTarget: 3, bodyTarget: 5 };
+  const p = getBeanProfile(curKaffee);
+  const blend = (p.blend || '').toLowerCase();
+  const m = blend.match(/(\d+)\s*%\s*r/);
+  const robusta = m ? parseInt(m[1]) : 0;
+  const roast = p.roast || 'medium';
+  // Erwartete Zielwerte je Profil (SCAA-orientiert)
+  return {
+    roast, robusta,
+    beanLabel: curKaffee,
+    // Dark Roast: weniger Säure, mehr Körper, mehr Bitter erlaubt
+    // Robusta: mehr Bitter & Körper, weniger Säure
+    acidTarget: roast === 'dark' ? 2 : robusta > 30 ? 2 : 3,
+    bitterTarget: roast === 'dark' ? (robusta > 20 ? 4 : 3) : 3,
+    bodyTarget: robusta > 30 ? 6 : roast === 'dark' ? 5 : 4,
+    sweetTarget: 5,
+    nachklangTarget: 5
+  };
+}
+
+// Verkostung adaptiert sich pro Schritt an Bohne
+function buildVerkSteps() {
+  const ctx = getVerkContext();
+  const roastTxt = ctx.roast === 'dark' ? 'Dark Roast' : 'Medium Roast';
+  const robTxt = ctx.robusta > 0 ? `, ${ctx.robusta}% Robusta` : '';
+  const context = `${ctx.beanLabel} · ${roastTxt}${robTxt}`;
+
+  return [
+    {
+      id: 'aroma',
+      title: '👃 Schritt 1: Aroma (optional)',
+      context,
+      question: 'Rieche kurz an Crema und Tasse. Was nimmst du am ehesten wahr?',
+      hint: 'Riechen ist Übungssache – wenn du unsicher bist, überspring den Schritt einfach unten. Das senkt deine Bewertung nicht.',
+      options: [
+        { label: '🍫 Schokolade / Kakao', ideal: ctx.roast === 'dark', hint: 'Klassisches Dark-Roast-Aroma',
+          action: () => { addAroma('Schokolade'); } },
+        { label: '🥜 Nuss / Karamell / Toast', ideal: true, hint: 'Maillard-Aromen, sehr typisch',
+          action: () => { addAroma('Karamell'); addAroma('Nuss'); } },
+        { label: '🍓 Frucht / Beere / Zitrus', ideal: ctx.roast === 'medium', hint: 'Helle Röstung, schöne Säure',
+          action: () => { addAroma('Beere'); addAroma('Frucht'); } },
+        { label: '🚬 Tabak / Holz / würzig', ideal: ctx.robusta > 30, hint: 'Robusta-typisch, ölig',
+          action: () => { addAroma('Tabak'); } },
+        { label: '🔥 Verbrannt / aschig', ideal: false, hint: 'Hinweis auf Überröstung oder zu heiß gebrüht',
+          action: () => { dotValues.bitter = Math.max(dotValues.bitter, 5); } },
+        { label: '💨 Schwach / leer', ideal: false, hint: 'Alte Bohne oder Unterextraktion',
+          action: () => { dotValues.suesse = Math.min(dotValues.suesse, 3); dotValues.nachklang = Math.min(dotValues.nachklang, 3); } }
+      ]
+    },
+    {
+      id: 'crema',
+      title: '☕ Schritt 2: Crema (visuell)',
+      context,
+      question: 'Wie sieht die Crema aus, bevor du umrührst?',
+      options: [
+        { label: '🍯 Dicht & Haselnuss, 3–5mm', ideal: true, hint: 'Ideal – gleichmäßige Extraktion',
+          action: () => { dotValues.koerper = ctx.bodyTarget; setCrema('Dicht & Haselnuss ✓'); } },
+        { label: '🐯 Tigerstreifen / marmoriert', ideal: true, hint: 'Sehr gut – gleichmäßiger Fluss',
+          action: () => { dotValues.koerper = ctx.bodyTarget; setCrema('Tigerstreifig ★'); } },
+        { label: '🟤 Dunkelbraun, ölig (Robusta)', ideal: ctx.robusta > 20, hint: 'Robusta-Charakter – ok',
+          action: () => { dotValues.koerper = Math.min(7, ctx.bodyTarget + 1); setCrema('Dunkel & Stark'); } },
+        { label: '🤍 Hell, dünn, schnell weg', ideal: false, hint: 'Unterextraktion oder zu grob',
+          action: () => { dotValues.koerper = 2; dotValues.saeure = Math.max(dotValues.saeure, 5); setCrema('Hell & Dünn'); } },
+        { label: '🕳 Löchrig / Channeling', ideal: false, hint: 'WDT/Tampen prüfen',
+          action: () => { dotValues.koerper = 3; setCrema('Grobporig'); } }
+      ]
+    },
+    {
+      id: 'saeure',
+      title: '🍋 Schritt 3: Erster Schluck – Säure',
+      context,
+      question: ctx.roast === 'dark'
+        ? 'Bei Dark Roast erwartest du wenig Säure. Was nimmst du wahr?'
+        : 'Medium Roast darf etwas Säure haben. Wie ist sie?',
+      options: [
+        { label: '✅ Rund, kaum spürbar', ideal: ctx.roast === 'dark', hint: 'Perfekt für Dark Roast',
+          action: () => { dotValues.saeure = 2; } },
+        { label: '🍇 Fruchtig-belebend', ideal: ctx.roast === 'medium', hint: 'Schöne Säure – ideal Medium',
+          action: () => { dotValues.saeure = 4; } },
+        { label: '🍋 Spitz-zitronig', ideal: false, hint: 'Tendenz Unterextraktion',
+          action: () => { dotValues.saeure = 5; } },
+        { label: '😣 Stechend, essigartig', ideal: false, hint: 'Klar unterextrahiert',
+          action: () => { dotValues.saeure = 7; dotValues.suesse = Math.min(dotValues.suesse, 2); } },
+        { label: '😑 Flach, kein Auftakt', ideal: false, hint: 'Alte Bohne oder zu kurz',
+          action: () => { dotValues.saeure = 2; dotValues.suesse = Math.min(dotValues.suesse, 2); dotValues.nachklang = Math.min(dotValues.nachklang, 3); } }
+      ]
+    },
+    {
+      id: 'suesse_koerper',
+      title: '🍫 Schritt 4: Mitte – Süße & Körper',
+      context,
+      question: 'Schluck halten. Wie fühlt sich der Espresso im Mund an und wie süß?',
+      options: [
+        { label: '🍫 Schokoladig-süß, vollmundig', ideal: ctx.roast === 'dark', hint: 'Top für Dark Roast',
+          action: () => { dotValues.suesse = 5; dotValues.koerper = ctx.bodyTarget; addAroma('Schokolade'); } },
+        { label: '🍯 Honig-süß, sirupartig', ideal: true, hint: 'Karamellisierte Zucker – sehr gut',
+          action: () => { dotValues.suesse = 6; dotValues.koerper = ctx.bodyTarget; addAroma('Karamell'); } },
+        { label: '🍬 Leicht süß, mittlerer Körper', ideal: true, hint: 'Solide, Spielraum nach oben',
+          action: () => { dotValues.suesse = 4; dotValues.koerper = 4; } },
+        { label: '💧 Wässrig, fast keine Süße', ideal: false, hint: 'Ratio kürzen oder Dose erhöhen',
+          action: () => { dotValues.suesse = 2; dotValues.koerper = 2; } },
+        { label: '🌰 Trocken, wenig Süße, viel Bitter', ideal: false, hint: 'Überextraktion',
+          action: () => { dotValues.suesse = 1; dotValues.koerper = 3; dotValues.bitter = Math.max(dotValues.bitter, 5); } }
+      ]
+    },
+    {
+      id: 'bitter',
+      title: '☕ Schritt 5: Bitterkeit',
+      context,
+      question: ctx.robusta > 20
+        ? 'Robusta bringt Bitter – sollte aber edel sein, nicht aschig.'
+        : 'Wie ist die Bitterkeit ausgeprägt?',
+      options: [
+        { label: '😊 Sehr mild, harmonisch', ideal: ctx.roast === 'medium' && ctx.robusta < 20, hint: 'Top für Medium ohne Robusta',
+          action: () => { dotValues.bitter = 2; } },
+        { label: '🍫 Edel-bitter (Kakao)', ideal: true, hint: 'Ideal für Dark Roast',
+          action: () => { dotValues.bitter = ctx.bitterTarget; } },
+        { label: '🥬 Vegetativ, etwas trocken', ideal: false, hint: 'Leichte Überextraktion',
+          action: () => { dotValues.bitter = 5; } },
+        { label: '🚬 Aschig, verbrannt', ideal: false, hint: 'Klar überextrahiert oder Temp zu hoch',
+          action: () => { dotValues.bitter = 7; dotValues.suesse = Math.min(dotValues.suesse, 2); } },
+        { label: '🛢 Gummiartig, ranzig', ideal: false, hint: 'Verschmutzte Brühgruppe – backflushen',
+          action: () => { dotValues.bitter = 6; dotValues.nachklang = 3; } }
+      ]
+    },
+    {
+      id: 'nachklang',
+      title: '⏱ Schritt 6: Abgang & Nachklang',
+      context,
+      question: '15–60 Sekunden nach dem Schluck: was bleibt im Mund?',
+      options: [
+        { label: '🍫 Lang & schokoladig (45s+)', ideal: true, hint: 'Referenz-Espresso',
+          action: () => { dotValues.nachklang = 7; } },
+        { label: '🍮 Karamell/Nuss, ~30s', ideal: true, hint: 'Sehr gut',
+          action: () => { dotValues.nachklang = ctx.nachklangTarget; } },
+        { label: '✅ Sauber, neutral, 20s', ideal: false, hint: 'Solide, etwas mehr Süße wäre besser',
+          action: () => { dotValues.nachklang = 4; } },
+        { label: '⚡ Kurz, leer (<15s)', ideal: false, hint: 'Unterextraktion oder alte Bohne',
+          action: () => { dotValues.nachklang = 2; } },
+        { label: '😖 Bitter/aschig lang', ideal: false, hint: 'Überextraktion',
+          action: () => { dotValues.nachklang = 3; dotValues.bitter = Math.max(dotValues.bitter, 5); } },
+        { label: '⚙ Metallisch / chemisch', ideal: false, hint: 'Brühgruppe entkalken / reinigen',
+          action: () => { dotValues.nachklang = 2; dotValues.bitter = Math.max(dotValues.bitter, 4); } }
+      ]
+    }
+  ];
+}
+
+// Helper: Aroma hinzufügen ohne Duplikat, syncen mit Chip-UI
+function addAroma(name) {
+  if (!curAromen.includes(name)) curAromen.push(name);
+  syncAromenChips();
+}
+function syncAromenChips() {
+  document.querySelectorAll('#aromen-chips .chip').forEach(b => {
+    b.classList.toggle('on', curAromen.includes(b.dataset.val));
+  });
+}
+function setCrema(label) {
+  curCrema = label;
+  syncCremaChips();
+}
+function syncCremaChips() {
+  document.querySelectorAll('#crema-chips .chip').forEach(b => {
+    b.classList.toggle('on', b.dataset.val === curCrema);
+  });
+}
+
+// Dynamische Steps – werden bei Start gebaut
+let VERK_STEPS = [];
+
+function toggleVerkostung() {
+  verkActive = !verkActive;
+  const btn = document.getElementById('verk-toggle-btn');
+  const box = document.getElementById('verk-assistant');
+  if (verkActive) {
+    verkStep = 0;
+    // Bohnenspezifische Steps bauen (Targets, Hints, Fragen passen sich an)
+    VERK_STEPS = buildVerkSteps();
+    // Reset auf Neutral (4) – Verkostung setzt absolute Werte
+    dotValues.saeure = 4; dotValues.bitter = 4; dotValues.suesse = 4;
+    dotValues.koerper = 4; dotValues.nachklang = 4;
+    updateDotDisplayAll();
+    btn.textContent = '✕ beenden';
+    box.style.display = 'block';
+    renderVerkStep();
+  } else {
+    btn.textContent = '▶ starten';
+    box.style.display = 'none';
+    box.innerHTML = '';
+  }
+}
+
+function renderVerkStep() {
+  const box = document.getElementById('verk-assistant');
+  if (verkStep >= VERK_STEPS.length) {
+    const names = {saeure:'Säure',bitter:'Bitterkeit',suesse:'Süße',koerper:'Körper',nachklang:'Nachklang'};
+    const summary = ['saeure','bitter','suesse','koerper','nachklang']
+      .map(id => `${names[id]}: ${dotValues[id]}/7`).join(' · ');
+    const aromaSummary = curAromen.length ? `Aromen: ${curAromen.join(', ')}` : '';
+    const cremaSummary = curCrema ? `Crema: ${curCrema}` : '';
+    box.innerHTML = `<div style="background:rgba(90,184,58,0.1);border:1px solid rgba(90,184,58,0.3);border-radius:9px;padding:12px;font-family:'Courier New',monospace;font-size:calc(.65rem*var(--font-scale))">
+      <strong style="color:var(--green)">✓ Verkostung abgeschlossen!</strong><br>
+      <div style="color:var(--mid);font-size:.9em;margin-top:4px;line-height:1.6">${summary}</div>
+      ${aromaSummary ? `<div style="color:var(--mid);font-size:.85em;margin-top:3px">${aromaSummary}</div>` : ''}
+      ${cremaSummary ? `<div style="color:var(--mid);font-size:.85em">${cremaSummary}</div>` : ''}
+      <div style="color:var(--mid);font-size:.85em;margin-top:6px">Slider unten prüfen & bei Bedarf manuell korrigieren.</div>
+      <div style="color:var(--crema);font-size:.9em;margin-top:4px">↓ Jetzt noch Gesamteindruck wählen um zu speichern</div>
+      <button onclick="toggleVerkostung()" style="margin-top:8px;background:var(--crema2);border:1px solid var(--border);color:var(--crema);padding:4px 12px;border-radius:6px;font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));cursor:pointer">Schließen</button>
+    </div>`;
+    updateDotDisplayAll();
+    updateScore();
+    updateLiveTip();
+    return;
+  }
+  const step = VERK_STEPS[verkStep];
+  const progressDots = VERK_STEPS.map((_, i) =>
+    `<div class="verk-prog-dot ${i < verkStep ? 'done' : i === verkStep ? 'current' : ''}"></div>`
+  ).join('');
+  box.innerHTML = `<div class="verk-card">
+    <div class="verk-title">${step.title}</div>
+    ${step.context ? `<div class="verk-context">${step.context}</div>` : ''}
+    <div class="verk-question">${step.question}</div>
+    ${step.hint ? `<div class="verk-hint-line">${step.hint}</div>` : ''}
+    <div class="verk-opts">
+      ${step.options.map((o, i) => `
+        <button class="verk-opt${o.ideal ? ' ideal' : ''}" onclick="selectVerkOption(${i})">
+          ${o.label}${o.ideal ? ' ✓' : ''}<span class="verk-opt-hint">${o.hint}</span>
+        </button>`).join('')}
+    </div>
+    <button class="verk-skip-btn" onclick="skipVerkStep()">Unsicher? Diesen Schritt überspringen →</button>
+    <div class="verk-progress">${progressDots}</div>
+    <div style="font-family:'Courier New',monospace;font-size:calc(.5rem*var(--font-scale));color:var(--mid);margin-top:5px;text-align:center">Schritt ${verkStep + 1} von ${VERK_STEPS.length} · ✓ = ideal für deine Bohne</div>
+  </div>`;
+}
+
+function skipVerkStep() {
+  verkStep++;
+  renderVerkStep();
+}
+
+function showVerkInfo() {
+  document.getElementById('modal-title').textContent = '👃 Geführte Verkostung';
+  document.getElementById('modal-body').innerHTML = `
+<p style="font-family:'Courier New',monospace;font-size:calc(.65rem*var(--font-scale));line-height:1.6">
+<strong style="color:var(--crema)">Was macht die geführte Verkostung?</strong><br>
+6 Schritte nach SCAA-Cupping-Protokoll, angepasst an dein Bohnenprofil:<br><br>
+<strong>1. Aroma</strong> – Was riechst du? (optional)<br>
+<strong>2. Crema</strong> – Visuelle Beurteilung<br>
+<strong>3. Säure</strong> – Erster Schluck<br>
+<strong>4. Süße &amp; Körper</strong> – Mitte des Schlucks<br>
+<strong>5. Bitterkeit</strong> – Gesamteindruck<br>
+<strong>6. Nachklang</strong> – 15–60s danach<br><br>
+<div class="info-target">Jeder Schritt hat einen <strong>„Überspringen"</strong>-Button. Wenn du dir bei etwas unsicher bist – z.B. beim Riechen – einfach überspringen. Übersprungene Schritte lassen den Slider neutral (4) und senken die Bewertung nicht.</div>
+<div class="info-target">Optionen mit <strong>✓</strong> sind für die aktuell gewählte Bohne ideal (Dark/Medium Roast, Robusta-Anteil).</div>
+<strong style="color:var(--crema)">Was passiert mit den Antworten?</strong><br>
+• Slider werden automatisch gesetzt (Säure, Bitter, Süße, Körper, Nachklang)<br>
+• Aromen-Chips werden vorausgewählt<br>
+• Crema-Typ wird markiert<br>
+• Danach kannst du alle Werte manuell feinjustieren<br><br>
+<strong style="color:var(--crema)">Quellen:</strong><br>
+SCAA Coffee Taster's Flavor Wheel · James Hoffmann (The World Atlas of Coffee) · Scott Rao (Espresso Extraction)
+</p>`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function selectVerkOption(i) {
+  const step = VERK_STEPS[verkStep];
+  step.options[i].action();
+  verkStep++;
+  renderVerkStep();
+}
+
+function updateDotDisplayAll() {
+  ['saeure','bitter','suesse','koerper','nachklang'].forEach(id => updateDotDisplay(id));
+}
+
+// ============================================================
+// GESAMTEINDRUCK – 4 Optionen
+// ============================================================
+let curGesamt = 0;
+
+function setGesamt(v) {
+  curGesamt = v;
+  const sterneMap = {1:1, 2:2, 3:4, 4:5};
+  curSterne = sterneMap[v];
+  document.querySelectorAll('.gesamt-btn').forEach(btn => {
+    const bv = parseInt(btn.dataset.v);
+    btn.style.border = bv === v ? '2px solid var(--crema)' : '1.5px solid var(--border)';
+    btn.style.background = bv === v ? 'rgba(200,151,74,0.18)' : 'var(--crema2)';
+  });
+  updateScore();
+  updateLiveTip();
+  document.getElementById('btn-save').disabled = false;
+}
+function calcScore(){
+  if(!curSterne&&!curGesamt)return 0;
+  const g=id=>dotToScore(dotValues[id]);
+  const ges=(10-g('saeure'))*1.5+(10-g('bitter'))*1.0+g('suesse')*1.5+g('koerper')*1.5+g('nachklang')*1.0;
+  const sliderPart=Math.round((ges/65)*70+(curSterne/5)*30);
+  // Gesamteindruck korrigiert Score wenn stark abweichend
+  if(curGesamt===1) return Math.min(sliderPart, 45);   // Nicht gut → max 45
+  if(curGesamt===2) return Math.min(Math.max(sliderPart,40), 65); // Geht so → 40-65
+  if(curGesamt===3) return Math.max(sliderPart, 60);   // Gut → min 60
+  if(curGesamt===4) return Math.max(sliderPart, 80);   // Ausgezeichnet → min 80
+  return sliderPart;
+}
+function top3Avg(shots){
+  const top=[...shots].sort((a,b)=>b.score-a.score).slice(0,3);
+  return top.length?Math.round(top.reduce((a,s)=>a+s.score,0)/top.length):0;
+}
+
+// ============================================================
+// EXTENDED TIP ENGINE v7
+// Sources: r/espresso, James Hoffmann, Scott Rao, IMS specs,
+// Lelit Victoria community, Eureka Libra quirks, pre-infusion research
+// ============================================================
+function generateTips(shot){
+  const tips=[];
+  const ratio=shot.doseOut&&shot.doseIn?shot.doseOut/shot.doseIn:null;
+  const zeit=parseFloat(shot.zeit)||null;
+  const temp=parseFloat(shot.temp)||null;
+  const pi=parseFloat(shot.pi)||0;
+  const sa=shot.saeure,bi=shot.bitter,su=shot.suesse,ko=shot.koerper,na=shot.nachklang;
+  const hasAsche=shot.aromen&&shot.aromen.includes('Asche');
+  const hasTabak=shot.aromen&&shot.aromen.includes('Tabak');
+  const hasHolz=shot.aromen&&shot.aromen.includes('Holz');
+  const beanProfile=curKaffee?getBeanProfile(curKaffee):null;
+  const robustaShare=beanProfile&&beanProfile.blend?parseFloat((beanProfile.blend.match(/(\d+)%\s*Robusta/)||[])[1]||0):0;
+  const isHighRobusta=robustaShare>=40;
+  // Röststufe & Temperatur-Profil dieser Bohne (kein pauschales "Dark Roast")
+  const roast=beanProfile&&beanProfile.roast?beanProfile.roast:'dark';
+  const tProfile=beanProfile&&beanProfile.temp?beanProfile.temp:(roast==='medium'?[92,94]:[91,93]);
+  const tLo=tProfile[0],tHi=tProfile[1];
+  const roastLabel=roast==='medium'?'Medium Roast':'Dark Roast';
+
+  // PRE-INFUSION LOGIC (Victoria-specific)
+  // Victoria 3-Wege-Ventil ermöglicht 0-8s Pre-Infusion durch Tastenbedienung
+  if(pi===0&&ratio&&ratio>2.5&&tips.length<2){
+    tips.push({tip:"Pre-Infusion (PI) testen: 3-5s Vordruck vor Bezugsbeginn. Bei der Victoria: Bezugstaste kurz antippen, 3-5s warten, dann normaler Bezug. Reduziert Channeling und verbessert gleichmäßige Benetzung des Pucks – besonders bei dunklen trockenen Röstungen.",followup:"War der Bezug gleichmäßiger mit PI?"});
+  }
+  if(pi>0&&pi<3&&bi>=6&&tips.length<2){
+    tips.push({tip:`Pre-Infusion ${pi}s ist sehr kurz. Für gleichmäßige Puck-Benetzung: 3-5s PI. Länger als 5s kann überextrahieren.`,followup:"War 3-5s PI besser?"});
+  }
+  if(pi>6&&bi>=5&&tips.length<2){
+    tips.push({tip:`Pre-Infusion ${pi}s ist sehr lang. Bitterkeit könnte daher kommen – bei ${roastLabel} max. 4-5s PI empfohlen.`,followup:"Weniger Bitterkeit bei kürzerer PI?"});
+  }
+
+  // FLOW PROBLEMS
+  if(ratio&&zeit){
+    if(ratio<2&&zeit>32){tips.push({tip:"Zu langsam & zu wenig Output (<1:2, >32s): Mahlgrad 1 Klick gröber. Eureka Libra: Mahlrad nach oben. Prüfe ob Puck-Screen nicht zu nass ist (begrenzt Durchfluss).",followup:"War Zeit/Output danach besser?"});}
+    else if(ratio>2.7&&zeit<25){tips.push({tip:"Zu schnell & zu viel Output (>1:2,7, <25s): Channeling oder Mahlgrad zu grob. 1 Klick feiner + WDT sorgfältig wiederholen. IMS 26.5er: Ziel 28-32s bei ~42g.",followup:"War Durchlauf danach gleichmäßiger?"});}
+    else if(zeit<22){tips.push({tip:"Sehr kurze Bezugszeit (<22s): 2 Klicks feiner. Bei der Eureka Libra nach langer Pause: Einlauf-Shot verwerfen, Scheiben sind kalt und mahlen initial gröber.",followup:"Wurde die Zeit länger?"});}
+    else if(zeit>38){tips.push({tip:"Sehr lange Bezugszeit (>38s): 1-2 Klicks gröber. Prüfe auch Puck-Screen auf Verstopfung. Wenn Puck-Screen neu → kurz reinigen.",followup:"War die Zeit danach kürzer?"});}
+  }
+
+  // TASTE ANALYSIS (r/espresso methodology)
+  if(sa>=6&&bi<=3&&tips.length<2){tips.push({tip:"Sauer ohne Bitterkeit = Unterextraktion. Zuerst: Mahlgrad feiner. Dann: Temperatur +1°C (Victoria TR-Modus). Dann: Pre-Infusion 3s testen. Säure verschwindet oft schon durch 0.5 Mahlgrad-Klick.",followup:"Weniger sauer beim nächsten Bezug?"});}
+  if(bi>=7&&su<=3&&tips.length<2){tips.push({tip:`Stark bitter ohne Süße = Überextraktion. Temperatur Richtung ${tLo}°C senken (unteres Profil-Ende, ${roastLabel} ${tLo}-${tHi}°C), Bezugszeit auf max. 28s verkürzen, Mahlgrad 0.5 gröber.`,followup:"Weniger bitter?"});}
+  if(hasAsche&&bi>=5&&tips.length<2){tips.push({tip:`Aschig-bitter = deutliche Überextraktion. Temperatur auf ${tLo}°C senken, Bezug früher bei ~40g stoppen, Pre-Infusion auf max. 3s begrenzen.`,followup:"Weniger Asche bei niedrigerer Temp?"});}
+  if((hasTabak||hasHolz)&&tips.length<2){tips.push({tip:"Tabak/Holz-Aromen: oft Zeichen einer älteren Bohne (>8 Wochen nach Röstung) oder zu niedriger Extraktion. Prüfe Röstzeitpunkt – Espresso-Optimum 2–6 Wochen. Sonst Mahlgrad 0.5 feiner.",followup:"Frischer oder feiner gemahlen probiert?"});}
+  if(isHighRobusta&&bi>=6&&tips.length<2){tips.push({tip:`Hoher Robusta-Anteil (${Math.round(robustaShare)}%): Robusta überextrahiert schneller als Arabica und wird dann stark bitter. Temp Richtung ${tLo}°C begrenzen, Mahlgrad 0.5 gröber, Bezug bei 40g stoppen.`,followup:"Weniger bitter mit niedrigerer Temp?"});}
+  if(sa>=5&&bi>=5&&tips.length<2){tips.push({tip:"Gleichzeitig sauer UND bitter = Channeling. WDT verbessern: Nadeln wirklich durch alle Schichten. Münztest wiederholen (Headspace). Mahlgrad 0.5 feiner.",followup:"Gleichmäßigerer Geschmack?"});}
+  if(ko<=3&&tips.length<2){tips.push({tip:"Dünner Körper: Dose auf 18.5-19g erhöhen (IMS 26.5er verträgt bis 20g Dark). Pre-Infusion 3-4s kann Körper aufbauen. Ratio auf 1:2,1-1:2,2 kürzen.",followup:"War Körper voller?"});}
+  if(na<=3&&tips.length<2){tips.push({tip:"Kurzer Nachklang: Ratio auf 1:2-1:2,2 kürzen. Output früher stoppen (~38-40g). Schokoladen-Nachklang entsteht bei knapper Extraktion.",followup:"War Nachklang länger?"});}
+
+  // TEMPERATURE (Victoria-specific)
+  if(temp&&temp<tLo-1&&tips.length<2){tips.push({tip:`Brühtemp ${temp}°C liegt unter dem Profil für ${curKaffee||'diese Bohne'} (${roastLabel}: ${tLo}-${tHi}°C). Victoria TR-Modus: Zieltemperatur Richtung ${tLo}°C erhöhen.`,followup:"Runder bei höherer Temp?"});}
+  if(temp&&temp>tHi+1.5&&tips.length<2){tips.push({tip:`Brühtemp ${temp}°C liegt über dem Profil (${roastLabel}: ${tLo}-${tHi}°C). Auf ${tHi}°C senken – höhere Temp kippt leicht in bittere/aschige Noten.`,followup:"Weniger Bitterkeit bei niedrigerer Temp?"});}
+
+  // RATIO OPTIMIZATION
+  if(ratio&&ratio<2.1&&!tips.some(t=>t.tip.includes('Mahlgrad'))&&tips.length<2){tips.push({tip:`Ratio 1:${ratio.toFixed(2)} = Ristretto-Bereich. Für klassischen Doppio mehr Output anstreben: ~42g bei 18g. Bezug länger laufen lassen oder Mahlgrad 0.5 gröber.`,followup:"Ausgewogener mit mehr Output?"});}
+  if(ratio&&ratio>2.6&&!tips.some(t=>t.tip.includes('Mahlgrad'))&&tips.length<2){tips.push({tip:`Ratio 1:${ratio.toFixed(2)} = Lungo-Bereich, wirkt wässrig. Bezug bei ~42g stoppen. Mahlgrad 0.5 feiner für mehr Körper.`,followup:"Konzentrierter mit weniger Output?"});}
+
+  // GRINDER (Eureka Libra specific)
+  if(shot.mahlgrad&&parseFloat(shot.mahlgrad)<=2&&tips.length<2){tips.push({tip:"Sehr feiner Mahlgrad (≤2 Finecoar). Eureka Libra: nach Pause ersten Shot verwerfen – Scheiben kühlen ab und mahlen zunächst gröber. Scheiben nach ~500 Bezügen reinigen.",followup:null});}
+
+  // MEDIUM SCORE OPTIMIZATION
+  if(tips.length===0&&shot.score>=60&&shot.score<80){
+    const candidates=[];
+    if(su<=5){
+      const dose=parseFloat(shot.doseIn)||18.5;
+      const bShots=curKaffee?data[curKaffee]||[]:[];
+      const adaptive=calcAdaptiveRec(bShots);
+      let sweetspot;
+      if(adaptive&&adaptive.temp&&adaptive.output){
+        const rMin=(adaptive.output[0]/dose).toFixed(1),rMax=(adaptive.output[1]/dose).toFixed(1);
+        sweetspot=`Dein Sweetspot (${adaptive.basedOn} gute Bezüge): ${adaptive.temp[0]}–${adaptive.temp[1]}°C, Ratio 1:${rMin}–1:${rMax}.`;
+      } else if(beanProfile&&beanProfile.temp&&beanProfile.output&&curKaffee){
+        const bNames=curKaffee.split(' ').slice(0,2).join(' ');
+        sweetspot=`Sweetspot ${bNames}: ${beanProfile.temp[0]}–${beanProfile.temp[1]}°C, Ratio 1:${(beanProfile.output[0]/dose).toFixed(1)}–1:${(beanProfile.output[1]/dose).toFixed(1)}.`;
+      } else {sweetspot="Sweetspot: 91–93°C, Ratio 1:2,1–1:2,4.";}
+      candidates.push({s:10-su,tip:`Süße ausbaufähig: Mahlgrad 0.5 feiner oder Temp +1°C. ${sweetspot}`,followup:"Süße ausgeprägter?"});
+    }
+    if(ko<=5)candidates.push({s:10-ko,tip:"Körper dünn: Dose auf 18.5g erhöhen oder Ratio auf 1:2-1:2,2 kürzen. Pre-Infusion 3-4s kann Körper verbessern.",followup:"Körper voller?"});
+    if(na<=5)candidates.push({s:10-na,tip:"Kurzer Nachklang: Output früher bei ~40g stoppen. Schokoladiger Nachklang entsteht bei etwas knapperer Ratio.",followup:"Nachklang länger?"});
+    if(pi===0)candidates.push({s:6,tip:"Pre-Infusion noch nicht getestet: 3-4s PI für gleichmäßigere Extraktion und mehr Körper. Victoria: Taste kurz antippen, dann 3-4s warten, dann normaler Bezug.",followup:"Mit PI gleichmäßiger?"});
+    if(candidates.length){candidates.sort((a,b)=>b.s-a.s);tips.push({tip:candidates[0].tip,followup:candidates[0].followup});}
+    else tips.push({tip:"Solider Bezug. Für Feintuning: Brühtemperatur ±1°C testen. Victoria reagiert gut auf 0.5°C Schritte im TR-Modus.",followup:null});
+  }
+
+  if(tips.length===0&&shot.score>=80){tips.push({tip:`Ausgezeichneter Bezug! Referenz: MG${shot.mahlgrad||'?'}${shot.temp?' · '+shot.temp+'°C':''}${shot.pi?' · PI'+shot.pi+'s':''}${ratio?' · 1:'+parseFloat(ratio).toFixed(2):''}. Das ist dein Benchmark für diese Bohne.`,followup:null});}
+  if(tips.length===0)tips.push({tip:"Brühtemperatur ±1°C variieren und Pre-Infusion 3-4s testen – oft der nächste sinnvolle Optimierungsschritt.",followup:null});
+
+  return tips.slice(0,2);
+}
+
+// ============================================================
+// AI PROMPT GENERATOR
+// ============================================================
+function generateAIPrompt(shot,context){
+  const all=[];
+  Object.entries(data).forEach(([name,shots])=>shots.forEach(s=>all.push({...s,kaffee:name})));
+  const best=all.length?all.reduce((a,b)=>b.score>a.score?b:a):null;
+  const kShotsSorted=curKaffee&&data[curKaffee]?[...data[curKaffee]].sort((a,b)=>b.score-a.score):[];
+
+  // Lieblings-/Problembohnen aus echten Daten ableiten (kein Hardcoding)
+  const beanStats=Object.entries(data)
+    .map(([n,sh])=>({n,avg:sh.length?Math.round(sh.reduce((a,s)=>a+s.score,0)/sh.length):0,count:sh.length}))
+    .filter(b=>b.count>=2)
+    .sort((a,b)=>b.avg-a.avg);
+  const besteBohnen=beanStats.slice(0,3).map(b=>`${b.n} (Ø ${b.avg})`);
+  const schwierigeBohnen=beanStats.filter(b=>b.avg<55).map(b=>`${b.n} (Ø ${b.avg})`);
+
+  const payload={
+    meta:{
+      tool:"Espresso Trainer v"+APP_VERSION,
+      erstellt:new Date().toLocaleString('de-DE'),
+      kontext:context||"Verbesserung eines Bezugs"
+    },
+    setup:{
+      maschine:"Lelit Victoria PL91T",
+      muehle:"Eureka Mignon Libra mit Finecoar Dial (0-60)",
+      korb:"IMS B702TH26.5M (26.5mm, Medium, 18-20g)",
+      ovp:"~9 Bar (eingestellt mit Manometer)",
+      pid:"KP 0.6 / KI 0.01 / KD 4.5 / TR-Modus aktiv (Ist-Temperatur sichtbar)",
+      puck_screen:"Ja, 0.8mm Mesh (3BOMBER)",
+      tamper:"Timemore Impact 58.4mm",
+      wdt:"Ja (Umikot-Tool)"
+    },
+    profil:{
+      geschmacksziel:"Klassisch-cremiger Doppio, wenig Säure, wenig Asche, Schokolade/Nuss",
+      beste_bohnen_bisher:besteBohnen.length?besteBohnen:["noch zu wenig Daten"],
+      schwierige_bohnen:schwierigeBohnen.length?schwierigeBohnen:[]
+    },
+    aktueller_bezug:shot?{
+      kaffee:curKaffee,
+      roeststufe:(getBeanProfile(curKaffee||'').roast==='medium'?'Medium Roast':'Dark Roast'),
+      dose_ein:shot.doseIn+'g',
+      yield_aus:shot.doseOut?shot.doseOut+'g':'nicht angegeben',
+      ratio:shot.ratio?'1:'+shot.ratio:(shot.doseOut&&shot.doseIn?'1:'+(shot.doseOut/shot.doseIn).toFixed(2):null),
+      zeit:shot.zeit?shot.zeit+'s':'nicht angegeben',
+      mahlgrad_finecoar:shot.mahlgrad||'nicht angegeben',
+      bruehtempteratur:shot.temp?shot.temp+'°C':'nicht angegeben',
+      pre_infusion:shot.pi?shot.pi+'s':'keine',
+      geschmack:{
+        saeure:shot.dotSaeure||shot.saeure,
+        bitterkeit:shot.dotBitter||shot.bitter,
+        suesse:shot.dotSuesse||shot.suesse,
+        koerper:shot.dotKoerper||shot.koerper,
+        nachklang:shot.dotNachklang||shot.nachklang,
+        skala:"1-7 (1=niedrig, 7=hoch)"
+      },
+      aromen:shot.aromen||[],
+      crema:shot.crema||'nicht angegeben',
+      sterne:shot.sterne,
+      score:shot.score,
+      notizen:shot.notizen||'keine'
+    }:null,
+    bisherige_bezuege_diese_bohne:kShotsSorted.slice(0,5).map((s,i)=>({
+      rang:i+1,
+      score:s.score,
+      mahlgrad:s.mahlgrad,
+      temp:s.temp,
+      pi:s.pi,
+      ratio:s.ratio?'1:'+s.ratio:null,
+      zeit:s.zeit+'s',
+      sterne:s.sterne
+    })),
+    bester_bezug_gesamt:best?{
+      kaffee:best.kaffee,score:best.score,mahlgrad:best.mahlgrad,temp:best.temp,ratio:best.ratio?'1:'+best.ratio:null,zeit:best.zeit+'s'
+    }:null,
+    prompt_aufgabe:"Analysiere diese Espresso-Parameter und gib konkrete Verbesserungsvorschläge für den nächsten Bezug. Berücksichtige: 1) Mahlgrad-Anpassung, 2) Brühtemperatur, 3) Pre-Infusion-Dauer (0-8s möglich mit der Lelit Victoria), 4) Ratio/Yield, 5) Dosierung. Priorisiere die 1-2 wichtigsten Änderungen. Antworte auf Deutsch."
+  };
+
+  return JSON.stringify(payload,null,2);
+}
+
+function showAIPrompt(context,shotIdx){
+  let shot=null;
+  if(context==='rangliste'){
+    // Alle Bezüge als Kontext
+    shot={doseIn:18,doseOut:42,sterne:0,score:0,aromen:[],notizen:'Ranglisten-Analyse',pi:0};
+  } else if(shotIdx!=null&&curKaffee&&data[curKaffee]&&data[curKaffee][shotIdx]){
+    shot=data[curKaffee][shotIdx];
+  } else if(curKaffee&&data[curKaffee]&&data[curKaffee].length>0){
+    shot=data[curKaffee][data[curKaffee].length-1];
+  }
+  const json=generateAIPrompt(shot,context==='rangliste'?'Gesamtanalyse der Rangliste und Optimierungspotenzial':null);
+
+  document.getElementById('modal-title').textContent='🤖 KI-Hilfe Prompt';
+  document.getElementById('modal-body').innerHTML=`
+    <p style="font-size:calc(.7rem*var(--font-scale));color:var(--mid);margin-bottom:8px">Kopiere diesen JSON-Prompt und füge ihn in Claude oder ChatGPT ein:</p>
+    <textarea class="ai-json-area" id="ai-json-output" readonly>${json}</textarea>
+    <button class="copy-btn" id="copy-json-btn" onclick="copyAIJson()">📋 In Zwischenablage kopieren</button>
+    <p style="font-size:calc(.62rem*var(--font-scale));color:var(--mid)">Tipp: Öffne Claude.ai oder ChatGPT, füge den Text ein und schicke ab. Der Prompt enthält dein gesamtes Setup und die Bezugshistorie.</p>`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function copyAIJson(){
+  const el=document.getElementById('ai-json-output');
+  el.select();
+  try{
+    if(navigator.clipboard){navigator.clipboard.writeText(el.value);}
+    else{document.execCommand('copy');}
+    const btn=document.getElementById('copy-json-btn');
+    btn.textContent='✓ Kopiert!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 In Zwischenablage kopieren';btn.classList.remove('copied');},2000);
+  }catch(e){el.focus();el.select();}
+}
+
+// ============================================================
+// LIVE TIP
+// ============================================================
+function updateLiveTip(){
+  const dIn=parseFloat(document.getElementById('f-doseIn').value)||18;
+  const dOut=parseFloat(document.getElementById('f-doseOut').value)||0;
+  const preview={
+    doseIn:dIn,doseOut:dOut,ratio:dOut?(dOut/dIn).toFixed(2):null,
+    zeit:document.getElementById('f-zeit').value,
+    mahlgrad:document.getElementById('f-mahlgrad').value,
+    temp:document.getElementById('f-temp').value,
+    pi:document.getElementById('f-pi').value,
+    saeure:dotToScore(dotValues.saeure),bitter:dotToScore(dotValues.bitter),
+    suesse:dotToScore(dotValues.suesse),koerper:dotToScore(dotValues.koerper),
+    nachklang:dotToScore(dotValues.nachklang),
+    aromen:[...curAromen],crema:curCrema,sterne:curSterne||3,score:calcScore()||65
+  };
+  const hasData=dOut>0||preview.zeit||preview.mahlgrad||preview.temp||preview.pi||
+    Object.values(dotValues).some(v=>v!==4);
+  const el=document.getElementById('live-tip');
+  if(!hasData){el.style.display='none';return;}
+  const tips=generateTips(preview);
+  if(!tips.length){el.style.display='none';return;}
+  el.innerHTML=`<strong>Live-Tipp${tips.length>1?'s':''}</strong>`+tips.map(t=>`<div class="live-tip-item">${t.tip}</div>`).join('');
+  el.style.display='block';
+}
+
+// ============================================================
+// DOT SELECTORS
+// ============================================================
+const slidersEl=document.getElementById('sliders');
+SLIDERS.forEach(sl=>{
+  const dots=Array.from({length:DOT_SCALE},(_,i)=>{
+    const v=i+1;
+    return `<button class="dot-btn" id="dot-${sl.id}-${v}" onclick="onDot('${sl.id}',${v})">${v}</button>`;
+  }).join('');
+  slidersEl.innerHTML+=`<div class="dot-row"><div class="dot-header"><span class="dot-name">${sl.label}<button class="info-btn" onclick="showSliderInfo('${sl.id}')">i</button></span></div><div class="dot-selector">${dots}</div><div class="dot-hints"><span>${sl.lo}</span><span>${sl.hi}</span></div></div>`;
+});
+
+function onDot(id,val){dotValues[id]=val;updateDotDisplay(id);updateScore();updateLiveTip();}
+function updateDotDisplay(id){const v=dotValues[id];for(let i=1;i<=DOT_SCALE;i++){const b=document.getElementById(`dot-${id}-${i}`);if(b)b.classList.toggle('on',i<=v);}}
+function updateAllDots(){SLIDERS.forEach(sl=>updateDotDisplay(sl.id));}
+
+// Aromen chips
+const aromaEl=document.getElementById('aromen-chips');
+AROMEN.forEach(a=>{const b=document.createElement('button');b.className='chip';b.textContent=a;b.dataset.val=a;b.onclick=()=>{const i=curAromen.indexOf(a);if(i>=0)curAromen.splice(i,1);else curAromen.push(a);b.classList.toggle('on',curAromen.includes(a));updateScore();updateLiveTip();};aromaEl.appendChild(b);});
+
+// Crema chips
+const cremaEl=document.getElementById('crema-chips');
+CREMAS.forEach(c=>{const b=document.createElement('button');b.className='chip';b.textContent=c;b.dataset.val=c;b.onclick=()=>{curCrema=c;document.querySelectorAll('#crema-chips .chip').forEach(x=>x.classList.toggle('on',x.dataset.val===c));updateScore();};cremaEl.appendChild(b);});
+
+// Stars
+const starsEl=document.getElementById('stars');
+// Stars replaced by Gesamteindruck 4-option buttons
+function updateStars(){} // kept for compatibility
+function updateScore(){if(!curGesamt&&!curSterne){document.getElementById('score-display').style.display='none';return;}document.getElementById('score-num').textContent=calcScore();document.getElementById('score-display').style.display='flex';}
+
+function updateRatio(){
+  const dIn=parseFloat(document.getElementById('f-doseIn').value)||18;
+  const dOut=parseFloat(document.getElementById('f-doseOut').value)||0;
+  const el=document.getElementById('ratio-display');
+  if(!dOut){el.textContent='';}else{const r=dOut/dIn;let tag='';if(r>=2.2&&r<=2.5)tag=' ★ Sweetspot';else if(r<2)tag=' → zu kurz';else if(r>2.7)tag=' → zu lang';el.textContent=`Ratio 1:${r.toFixed(2)}${tag}`;}
+  updateLiveTip();
+}
+
+function setEmpf(v){curEmpf=v;document.querySelectorAll('.empf-btn').forEach(b=>b.classList.remove('on'));document.querySelector(`.empf-btn.${v}`).classList.add('on');}
+
+// ============================================================
+// PILLS
+// ============================================================
+function buildPills(){
+  const el=document.getElementById('kaffee-pills');el.innerHTML='';
+  getAllKaffees().forEach(k=>{
+    const cnt=(data[k]||[]).length;const isCustom=customKaffees.includes(k);
+    const b=document.createElement('button');
+    b.className='pill'+(cnt>0?' has-data':'')+(curKaffee===k?' active':'');
+    b.textContent=k+(cnt>0?` (${cnt})`:'');b.onclick=()=>selectKaffee(k);
+    if(isCustom){let pt;b.addEventListener('touchstart',()=>{pt=setTimeout(()=>removeCustomKaffee(k),800);});b.addEventListener('touchend',()=>clearTimeout(pt));b.addEventListener('contextmenu',e=>{e.preventDefault();removeCustomKaffee(k);});}
+    el.appendChild(b);
+  });
+  const add=document.createElement('button');add.className='pill add-pill';add.textContent='+ Kaffee';add.onclick=addCustomKaffee;el.appendChild(add);
+}
+function addCustomKaffee(){const name=prompt('Name des Kaffees:');if(!name||!name.trim())return;const t=name.trim();if(getAllKaffees().includes(t)){alert('Existiert bereits.');return;}customKaffees.push(t);saveCustom();buildPills();}
+function removeCustomKaffee(k){if(!customKaffees.includes(k))return;const s=(data[k]||[]).length;if(!confirm(`"${k}" entfernen?${s>0?' ('+s+' Bezüge bleiben)':''}`))return;customKaffees=customKaffees.filter(x=>x!==k);saveCustom();if(curKaffee===k){curKaffee=null;document.getElementById('form-area').style.display='none';document.getElementById('no-selection').style.display='block';}buildPills();}
+
+function selectKaffee(k){
+  curKaffee=k;resetForm(true);
+  document.getElementById('no-selection').style.display='none';
+  document.getElementById('form-area').style.display='block';
+  document.getElementById('form-kaffee-name').textContent=k;
+  const shots=data[k]||[];const badge=document.getElementById('form-badge');
+  if(shots.length>0){badge.textContent=`${shots.length} Bezug${shots.length>1?'e':''}`;badge.style.display='inline-block';}else badge.style.display='none';
+  buildPills();renderHistory();renderTrainerRec(k);
+}
+
+// ============================================================
+// FORM
+// ============================================================
+function resetForm(prefill){
+  curSterne=0;curEmpf=null;curAromen=[];curCrema=null;curGesamt=0;
+  // Verkostung schließen falls offen (z.B. nach Bohnenwechsel)
+  if(verkActive){
+    verkActive=false;
+    verkStep=0;
+    const vb=document.getElementById('verk-assistant');
+    if(vb){vb.innerHTML='';vb.style.display='none';}
+    const vt=document.getElementById('verk-toggle-btn');
+    if(vt)vt.textContent='▶ starten';
+  }
+  // Reset Gesamteindruck Buttons
+  document.querySelectorAll('.gesamt-btn').forEach(btn => {
+    btn.style.border = '1.5px solid var(--border)';
+    btn.style.background = 'var(--crema2)';
+  });
+  let doseIn='18',mahlgrad='',temp='',pi='';
+  if(prefill&&curKaffee&&data[curKaffee]&&data[curKaffee].length>0){
+    const last=data[curKaffee][data[curKaffee].length-1];
+    doseIn=last.doseIn||'18';mahlgrad=last.mahlgrad||'';temp=last.temp||'';pi=last.pi||'';
+  } else if(prefill&&curKaffee){
+    const prof=getBeanProfile(curKaffee);
+    if(prof.mahlgrad) mahlgrad=((prof.mahlgrad[0]+prof.mahlgrad[1])/2).toFixed(1);
+    if(prof.temp) temp=Math.round((prof.temp[0]+prof.temp[1])/2).toString();
+  }
+  ['f-doseIn','f-doseOut','f-zeit','f-mahlgrad','f-temp','f-pi','f-notizen'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.value='';
+  });
+  document.getElementById('f-doseIn').value=doseIn;
+  document.getElementById('f-mahlgrad').value=mahlgrad;
+  document.getElementById('f-temp').value=temp;
+  document.getElementById('f-pi').value=pi;
+  document.getElementById('ratio-display').textContent='';
+  ['f-doseIn','f-mahlgrad','f-temp','f-pi'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(prefill&&el.value)el.classList.add('prefilled');else el.classList.remove('prefilled');
+    el.onfocus=()=>el.classList.remove('prefilled');
+  });
+  SLIDERS.forEach(sl=>{dotValues[sl.id]=4;updateDotDisplay(sl.id);});
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  updateStars();document.getElementById('score-display').style.display='none';
+  document.querySelectorAll('.empf-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('btn-save').disabled=true;
+  document.getElementById('live-tip').style.display='none';
+  updateLiveTip();
+}
+
+// ============================================================
+// SAVE SHOT
+// ============================================================
+function saveShot(){
+  if(!curKaffee||(!curSterne && !curGesamt))return;
+  const doseIn=parseFloat(document.getElementById('f-doseIn').value)||18;
+  const doseOut=parseFloat(document.getElementById('f-doseOut').value)||0;
+  const now=new Date();
+  const shot={
+    doseIn,doseOut,
+    zeit:document.getElementById('f-zeit').value,
+    mahlgrad:document.getElementById('f-mahlgrad').value,
+    temp:document.getElementById('f-temp').value,
+    pi:document.getElementById('f-pi').value,
+    ratio:doseOut?(doseOut/doseIn).toFixed(2):null,
+    saeure:dotToScore(dotValues.saeure),bitter:dotToScore(dotValues.bitter),
+    suesse:dotToScore(dotValues.suesse),koerper:dotToScore(dotValues.koerper),
+    nachklang:dotToScore(dotValues.nachklang),
+    dotSaeure:dotValues.saeure,dotBitter:dotValues.bitter,
+    dotSuesse:dotValues.suesse,dotKoerper:dotValues.koerper,dotNachklang:dotValues.nachklang,
+    aromen:[...curAromen],crema:curCrema,
+    sterne:curSterne,empfehlung:curEmpf,
+    notizen:document.getElementById('f-notizen').value,
+    score:calcScore(),
+    ts:now.toLocaleDateString('de-DE')+' '+now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),
+    timestamp:now.getTime()
+  };
+  const tipsResult=generateTips(shot);
+  if(tipsResult.length)shot.tips=tipsResult.map(t=>({...t,resolved:null}));
+  if(!data[curKaffee])data[curKaffee]=[];
+  data[curKaffee].push(shot);saveData();
+  selectKaffee(curKaffee);
+  renderTrainerRec(curKaffee);
+  if(navigator.vibrate)navigator.vibrate(30);
+}
+
+function deleteShot(k,idx){if(!confirm('Bezug löschen?'))return;data[k].splice(idx,1);if(!data[k].length)delete data[k];saveData();selectKaffee(k);renderRangliste();}
+function answerFollowup(k,idx,tIdx,ans){if(!data[k][idx].tips)return;data[k][idx].tips[tIdx].resolved=ans;saveData();renderHistory();renderTrainerRec(k);}
+
+// ============================================================
+// NOTE EDITING
+// ============================================================
+function startEditNote(i){editingNoteIdx=i;renderHistory();}
+function cancelEditNote(){editingNoteIdx=-1;renderHistory();}
+function saveNote(k,i){
+  const ta=document.getElementById('note-edit-'+i);
+  if(ta){data[k][i].notizen=ta.value.trim();saveData();}
+  editingNoteIdx=-1;
+  renderHistory();
+}
+
+// ============================================================
+// RENDER HISTORY
+// ============================================================
+function fixTipLegacy(tip){
+  if(!tip||!tip.includes('Dinzler/Passalacqua')||!curKaffee)return tip;
+  const bp=getBeanProfile(curKaffee);
+  if(!bp||!bp.temp||!bp.output)return tip;
+  const bNames=curKaffee.split(' ').slice(0,2).join(' ');
+  return tip.replace('Sweetspot für Dinzler/Passalacqua: 91-92°C, Ratio 1:2,2-1:2,4, 29-31s.',`Sweetspot ${bNames}: ${bp.temp[0]}–${bp.temp[1]}°C, Ratio 1:${(bp.output[0]/18.5).toFixed(1)}–1:${(bp.output[1]/18.5).toFixed(1)}.`);
+}
+function renderHistory(){
+  const shots=data[curKaffee]||[];
+  const card=document.getElementById('history-card'),list=document.getElementById('history-list');
+  if(!shots.length){card.style.display='none';return;}
+  card.style.display='block';
+  const bestShot=shots.reduce((a,b)=>b.score>a.score?b:a);
+
+  list.innerHTML=shots.slice().reverse().map((s,revIdx)=>{
+    const i=shots.length-1-revIdx;
+    let tipsArr=s.tips;
+    if(!tipsArr&&s.tip)tipsArr=[{tip:s.tip,followup:s.tipFollowup,resolved:s.tipResolved}];
+    let tipHtml='';
+    if(tipsArr&&tipsArr.length){
+      tipHtml=tipsArr.map((t,tIdx)=>{
+        let fHtml='';
+        if(t.followup){
+          if(t.resolved===null||t.resolved===undefined){fHtml=`<div class="shot-tip-followup">${t.followup}<div class="yn-row"><button onclick="answerFollowup('${curKaffee.replace(/'/g,"\\'")}',${i},${tIdx},'ja')">Ja, besser</button><button onclick="answerFollowup('${curKaffee.replace(/'/g,"\\'")}',${i},${tIdx},'nein')">Nein</button><button onclick="answerFollowup('${curKaffee.replace(/'/g,"\\'")}',${i},${tIdx},'skip')">Skip</button></div></div>`;}
+          else{const lbl=t.resolved==='ja'?'✓ Verbessert':t.resolved==='nein'?'✗ Nicht besser':'— Skip';fHtml=`<div class="shot-tip-followup shot-tip-resolved">${lbl}</div>`;}
+        }
+        return `<div class="shot-tip"><strong>Tipp${tipsArr.length>1?' '+(tIdx+1)+'/'+tipsArr.length:''}</strong>${fixTipLegacy(t.tip)}${fHtml}</div>`;
+      }).join('');
+    }
+
+    let cmpHtml='';
+    if(shots.length>1&&s===bestShot){cmpHtml=`<div class="shot-compare best">⭐ Bester Bezug dieser Bohne</div>`;}
+    else if(shots.length>1&&bestShot.score>s.score){
+      const diff=s.score-bestShot.score;const items=[];
+      if(s.mahlgrad&&bestShot.mahlgrad&&s.mahlgrad!==bestShot.mahlgrad)items.push(`MG ${(parseFloat(s.mahlgrad)-parseFloat(bestShot.mahlgrad)>0?'+':'')+(parseFloat(s.mahlgrad)-parseFloat(bestShot.mahlgrad)).toFixed(1)} vs.Best`);
+      if(s.temp&&bestShot.temp&&s.temp!==bestShot.temp)items.push(`${(parseFloat(s.temp)-parseFloat(bestShot.temp)>0?'+':'')+(parseFloat(s.temp)-parseFloat(bestShot.temp)).toFixed(0)}°C`);
+      if(s.ratio&&bestShot.ratio&&Math.abs(parseFloat(s.ratio)-parseFloat(bestShot.ratio))>0.05)items.push(`Ratio ${(parseFloat(s.ratio)-parseFloat(bestShot.ratio)>0?'+':'')+(parseFloat(s.ratio)-parseFloat(bestShot.ratio)).toFixed(2)}`);
+      if(s.pi!==bestShot.pi)items.push(`PI ${s.pi||0}s vs.${bestShot.pi||0}s`);
+      cmpHtml=`<div class="shot-compare"><strong>vs. Bester</strong>Score ${s.score} vs. ${bestShot.score} <span style="color:var(--red)">(${diff})</span>${items.length?' · '+items.join(' · '):''}</div>`;
+    }
+
+    const kEsc=curKaffee.replace(/'/g,"\\'");
+    const noteHtml = editingNoteIdx===i
+      ? `<div><textarea id="note-edit-${i}" class="note-edit-ta">${(s.notizen||'').replace(/</g,'&lt;')}</textarea><div class="yn-row"><button onclick="saveNote('${kEsc}',${i})" style="color:var(--green)">✓ Speichern</button><button onclick="cancelEditNote()">Abbrechen</button></div></div>`
+      : `${s.notizen?`<div class="shot-note">"${s.notizen}"</div>`:''}
+         <button class="note-edit-btn" onclick="startEditNote(${i})">${s.notizen?'✏':'＋ Notiz'}</button>
+         <button class="note-edit-btn" onclick="showAIPrompt(null,${i})">🤖 KI-Hilfe</button>`;
+    const empfBadge=s.empfehlung==='ja'?'<span style="color:#8fdc5a"> · ✓ Kaufen</span>':s.empfehlung==='nein'?'<span style="color:#dc5a5a"> · ✗ Nicht kaufen</span>':s.empfehlung==='vl'?'<span style="color:var(--crema)"> · ? Evtl.</span>':'';
+    return `<div class="shot-item"><div class="shot-row-top"><div class="shot-info"><div class="shot-main">#${i+1} · ${s.doseIn}g→<strong style="color:var(--crema)">${s.doseOut||'?'}g</strong> · ${s.zeit||'?'}s · MG${s.mahlgrad||'?'}${s.temp?' · '+s.temp+'°C':''}${s.pi?' · PI'+s.pi+'s':''} · ${'★'.repeat(s.sterne)}</div><div class="shot-meta">1:${s.ratio||'?'} · Score ${s.score} · ${s.ts}${empfBadge}</div>${noteHtml}</div><button class="shot-del" onclick="deleteShot('${kEsc}',${i})">✕</button></div>${cmpHtml}${tipHtml}</div>`;
+  }).join('');
+
+  if(shots.length>1){const avgS=Math.round(shots.reduce((a,s)=>a+s.score,0)/shots.length);list.innerHTML+=`<div class="shots-footer">Ø ${avgS} · Best ${Math.max(...shots.map(s=>s.score))} · Top-3 Ø ${top3Avg(shots)}</div>`;}
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const el=document.getElementById('dashboard-content');
+  const all=[];Object.entries(data).forEach(([name,shots])=>shots.forEach(s=>all.push({...s,kaffee:name})));
+  const total=all.length;
+  const kCount=Object.keys(data).length;
+
+  if(!total){
+    el.innerHTML=`
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:3rem;margin-bottom:12px">☕</div>
+        <div style="font-size:calc(1rem*var(--font-scale));color:var(--crema);margin-bottom:8px">Willkommen beim Espresso Trainer</div>
+        <div style="font-family:'Courier New',monospace;font-size:calc(.64rem*var(--font-scale));color:var(--mid);line-height:1.8">Wähle im Tab "Bezug" eine Bohne<br>und starte deinen ersten Bezug.</div>
+      </div>`;
+    return;
+  }
+
+  const avgScore=Math.round(all.reduce((a,s)=>a+s.score,0)/total);
+  const bestShot=all.reduce((a,b)=>b.score>a.score?b:a);
+  const lastShot=all.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0];
+  const ratios=all.map(s=>parseFloat(s.ratio)).filter(r=>!isNaN(r));
+  const avgRatio=ratios.length?(ratios.reduce((a,r)=>a+r,0)/ratios.length).toFixed(2):'–';
+
+  // Trend (last 10 shots by time)
+  const recentShots=[...all].sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)).slice(-12);
+  const maxScore=Math.max(...recentShots.map(s=>s.score),1);
+  const trendBars=recentShots.map(s=>{
+    const h=Math.max(8,Math.round((s.score/maxScore)*55));
+    const isBest=s===bestShot;
+    return `<div class="trend-bar${isBest?' best':''}" style="height:${h}px" title="${s.kaffee}: ${s.score}pt"></div>`;
+  }).join('');
+
+  // Calibration status per kaffee
+  const calRows=Object.entries(data).sort((a,b)=>b[1].length-a[1].length).slice(0,5).map(([name,shots])=>{
+    const cnt=shots.length;const pct=Math.min(100,cnt/5*100);
+    const col=pct>=100?'var(--green)':pct>=60?'var(--crema)':'var(--mid)';
+    const label=pct>=100?'Kalibriert':''+cnt+'/5';
+    return `<div class="cal-row"><div class="cal-name">${name}</div><div class="cal-bar-wrap"><div class="cal-bar" style="width:${pct}%;background:${col}"></div></div><div class="cal-count">${label}</div></div>`;
+  }).join('');
+
+  // Last shot summary
+  const lastSummary=lastShot?`${lastShot.kaffee}<br>${lastShot.doseIn}g→${lastShot.doseOut||'?'}g · Score ${lastShot.score} · ${lastShot.ts}`:'–';
+
+  el.innerHTML=`
+    <div class="dashboard-grid">
+      <div class="dash-card"><div class="dash-num">${total}</div><div class="dash-label">Bezüge</div></div>
+      <div class="dash-card"><div class="dash-num">${avgScore}</div><div class="dash-label">Ø Score</div></div>
+      <div class="dash-card"><div class="dash-num">${bestShot.score}</div><div class="dash-label">Best Score</div></div>
+      <div class="dash-card"><div class="dash-num">1:${avgRatio}</div><div class="dash-label">Ø Ratio</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Score-Verlauf (letzte ${recentShots.length})</div>
+      <div class="trend-chart">${trendBars}</div>
+      <div style="font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));color:var(--mid);text-align:center">● = bester Bezug</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kalibrierungs-Status</div>
+      <div style="font-family:'Courier New',monospace;font-size:calc(.54rem*var(--font-scale));color:var(--mid);margin-bottom:8px">5 Bezüge = kalibriert</div>
+      <div class="calibration-bar">${calRows}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Letzter Bezug</div>
+      <div style="font-family:'Courier New',monospace;font-size:calc(.64rem*var(--font-scale));color:var(--light);line-height:1.8">${lastSummary}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Schnell-Aktionen</div>
+      <div class="action-row">
+        <button class="action-btn" onclick="switchTab('bewertung')">+ Bezug</button>
+        <button class="action-btn" onclick="switchTab('rangliste')">Rangliste</button>
+        <button class="action-btn ai" onclick="showAIPrompt('dashboard')">🤖 KI-Hilfe</button>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// RANGLISTE
+// ============================================================
+function toggleRankDetail(nEsc, el){
+  const expand=el.querySelector('.rank-expand');
+  if(!expand)return;
+  const open=expand.style.display!=='none';
+  document.querySelectorAll('.rank-expand').forEach(e=>e.style.display='none');
+  document.querySelectorAll('.rank-item').forEach(e=>e.classList.remove('rank-item-open'));
+  if(!open){expand.style.display='block';el.classList.add('rank-item-open');}
+}
+
+function renderRangliste(){
+  const el=document.getElementById('rank-list');
+  const entries=Object.entries(data).map(([name,shots])=>{
+    const sorted=[...shots].sort((a,b)=>b.score-a.score);
+    const top=sorted.slice(0,3);const rankScore=top3Avg(shots);const best=sorted[0];
+    const ratios=top.map(s=>s.ratio).filter(Boolean);
+    const avgRatio=ratios.length?(ratios.reduce((a,r)=>a+parseFloat(r),0)/ratios.length).toFixed(2):null;
+    const last=[...shots].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0];
+    return {name,best,last,rankScore,count:shots.length,avgRatio,topCount:top.length};
+  }).sort((a,b)=>b.rankScore-a.rankScore);
+  if(!entries.length){el.innerHTML='<div class="empty">Noch keine Bewertungen.</div>';return;}
+
+  const cal=entries.filter(e=>e.count>=3);
+  const uncal=entries.filter(e=>e.count<3);
+  const max=cal.length?cal[0].rankScore:100;
+
+  let html='';
+  cal.forEach(({name,best,last,rankScore,count,avgRatio,topCount},i)=>{
+    const nEsc=name.replace(/'/g,"\\'");
+    const bestMeta=`Score ${best.score} · MG${best.mahlgrad||'?'} · ${best.temp||'?'}°C · ${best.doseOut||'?'}g · ${best.zeit||'?'}s`;
+    const lastMeta=last&&last!==best?`Score ${last.score} · MG${last.mahlgrad||'?'} · ${last.doseOut||'?'}g · ${last.ts}`:'–';
+    html+=`
+    <div class="rank-item${i===0?' top':''}" onclick="toggleRankDetail('${nEsc}',this)">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${name}</div>
+        <div class="rank-detail">${count} Bezüge · Top-${topCount} Ø <strong style="color:var(--crema)">${rankScore}</strong>${avgRatio?' · Ø 1:'+avgRatio:''}</div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(rankScore/max)*100}%"></div></div>
+        <div class="rank-expand">
+          <div class="rank-expand-cols">
+            <div><div class="rank-expand-label">Bester Bezug</div><div class="rank-expand-meta">${bestMeta}</div></div>
+            <div><div class="rank-expand-label">Letzter Bezug</div><div class="rank-expand-meta">${lastMeta}</div></div>
+          </div>
+          <div class="rank-expand-btns">
+            <button class="rank-expand-btn" onclick="event.stopPropagation();showBestShot('${nEsc}')">⭐ Bester Bezug</button>
+            <button class="rank-expand-btn goto" onclick="event.stopPropagation();selectKaffee('${nEsc}');switchTab('bewertung')">→ Bezug öffnen</button>
+          </div>
+        </div>
+      </div>
+      <div class="rank-score">${rankScore}</div>
+    </div>`;
+  });
+
+  if(uncal.length){
+    html+=`<div class="rank-calib-header">Kalibrierung läuft…</div>`;
+    uncal.forEach(({name,last,count})=>{
+      const nEsc=name.replace(/'/g,"\\'");
+      const pct=Math.round((count/3)*100);
+      const lastMeta=last?`Score ${last.score} · ${last.ts}`:'–';
+      html+=`
+      <div class="rank-item rank-unranked" onclick="toggleRankDetail('${nEsc}',this)">
+        <div class="rank-num" style="color:var(--mid)">–</div>
+        <div class="rank-info">
+          <div class="rank-name">${name}</div>
+          <div class="rank-detail" style="color:var(--mid)">${count}/3 Bezüge bis Kalibrierung</div>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%;background:var(--mid)"></div></div>
+          <div class="rank-expand">
+            <div class="rank-expand-cols">
+              <div><div class="rank-expand-label">Letzter Bezug</div><div class="rank-expand-meta">${lastMeta}</div></div>
+              <div><div class="rank-expand-label">Noch fehlen</div><div class="rank-expand-meta">${3-count} Bezug${3-count===1?'':'e'}</div></div>
+            </div>
+            <div class="rank-expand-btns">
+              <button class="rank-expand-btn" onclick="event.stopPropagation();selectKaffee('${nEsc}');switchTab('bewertung')">→ Bezug öffnen</button>
+            </div>
+          </div>
+        </div>
+        <div class="rank-score" style="font-size:calc(1rem*var(--font-scale));color:var(--mid)">⏳</div>
+      </div>`;
+    });
+  }
+
+  el.innerHTML=html;
+}
+
+function showBestShot(name){
+  const shots=data[name]||[];if(!shots.length)return;
+  const best=shots.reduce((a,b)=>b.score>a.score?b:a);
+  document.getElementById('modal-title').textContent=`⭐ Bester Bezug: ${name}`;
+  document.getElementById('modal-body').innerHTML=`<div style="font-family:'Courier New',monospace;font-size:calc(.66rem*var(--font-scale));color:var(--text);line-height:2"><strong style="color:var(--crema);display:block;margin-bottom:7px">Score ${best.score}/100 · ${'★'.repeat(best.sterne)}</strong>Dose: ${best.doseIn}g → ${best.doseOut||'?'}g (1:${best.ratio||'?'})<br>Zeit: ${best.zeit||'?'}s · Mahlgrad: ${best.mahlgrad||'?'}${best.temp?`<br>Temp: ${best.temp}°C`:''}${best.pi?`<br>Pre-Infusion: ${best.pi}s`:''}<br>${best.aromen&&best.aromen.length?`Aromen: ${best.aromen.join(', ')}<br>`:''}${best.crema?`Crema: ${best.crema}<br>`:''}${best.notizen?`<em style="color:var(--mid)">"${best.notizen}"</em><br>`:''}<span style="color:var(--mid);font-size:.9em">${best.ts}</span></div>`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function showSliderInfo(id){const sl=SLIDERS.find(x=>x.id===id);if(!sl)return;document.getElementById('modal-title').textContent=sl.info.title;document.getElementById('modal-body').innerHTML=`<p>${sl.info.text}</p>`;document.getElementById('modal-bg').classList.add('show');}
+
+function showBohnenInfo(kaffee) {
+  const p = getBeanProfile(kaffee);
+  const shots = data[kaffee] || [];
+  const goodShots = shots.filter(s => s.score >= 70);
+  const avgScore = shots.length ? Math.round(shots.reduce((a,s)=>a+s.score,0)/shots.length) : null;
+  const html = `<div style="font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));line-height:1.9">
+    ${p.blend ? `<strong style="color:var(--crema)">Blend:</strong> ${p.blend}<br>` : ''}
+    ${p.herkunft ? `<strong style="color:var(--crema)">Herkunft:</strong> ${p.herkunft}<br>` : ''}
+    ${p.taste ? `<strong style="color:var(--crema)">Aromen:</strong> ${p.taste}<br>` : ''}
+    ${p.inei ? `<span style="color:var(--green)">✓ INEI zertifiziert</span><br>` : ''}
+    <br><strong style="color:var(--crema)">Empfohlene Parameter:</strong><br>
+    Mahlgrad: ${p.mahlgrad[0]}–${p.mahlgrad[1]} · Temp: ${p.temp[0]}–${p.temp[1]}°C<br>
+    Output: ${p.output[0]}–${p.output[1]}g · Röstung: ${p.roast === 'dark' ? 'Dark' : 'Medium'}<br>
+    <br><em style="color:var(--mid)">${p.notes}</em>
+    ${shots.length ? `<br><br><strong style="color:var(--crema)">Deine Statistik:</strong><br>
+    ${shots.length} Bezüge · Ø Score ${avgScore} · ${goodShots.length} gute Bezüge` : ''}
+  </div>`;
+  document.getElementById('modal-title').textContent = `☕ ${kaffee}`;
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function showAromaInfo(){
+  document.getElementById('modal-title').textContent='Aromen – SCAA Flavor Wheel';
+  document.getElementById('modal-body').innerHTML=`
+<p style="font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));line-height:1.6">
+<strong style="color:var(--crema)">Aroma-Kategorien (vereinfacht nach SCAA):</strong></p>
+<div class="info-visual">
+<div class="info-visual-title">Positive Aromen</div>
+<div class="info-row"><span class="info-row-emoji">🍫</span><span class="info-row-label">Schokolade</span><span class="info-row-text">Kakao, dunkle Schokolade – Dark Roast</span></div>
+<div class="info-row"><span class="info-row-emoji">🥜</span><span class="info-row-label">Nuss</span><span class="info-row-text">Mandel, Haselnuss – Maillard</span></div>
+<div class="info-row"><span class="info-row-emoji">🍮</span><span class="info-row-label">Karamell</span><span class="info-row-text">Zucker, Toffee – ideale Süße</span></div>
+<div class="info-row"><span class="info-row-emoji">🍒</span><span class="info-row-label">Frucht/Beere</span><span class="info-row-text">Kirsche, Beere – Medium/Light Roast</span></div>
+<div class="info-row"><span class="info-row-emoji">🌸</span><span class="info-row-label">Blume</span><span class="info-row-text">Jasmin – sehr helle Röstungen</span></div>
+<div class="info-row"><span class="info-row-emoji">🍋</span><span class="info-row-label">Zitrus</span><span class="info-row-text">Bergamotte – belebende Säure</span></div>
+<div class="info-row"><span class="info-row-emoji">🌶</span><span class="info-row-label">Gewürz/Vanille</span><span class="info-row-text">Zimt, Vanille – komplexe Bohnen</span></div>
+</div>
+<div class="info-visual">
+<div class="info-visual-title">Warn-Aromen</div>
+<div class="info-row"><span class="info-row-emoji">🚬</span><span class="info-row-label">Asche/Rauch</span><span class="info-row-text">Überextraktion oder Röstfehler</span></div>
+<div class="info-row"><span class="info-row-emoji">🌳</span><span class="info-row-label">Holz/Tabak</span><span class="info-row-text">Alte Bohne oder hoher Robusta-Anteil</span></div>
+</div>
+<div class="info-target"><strong>Ziel Dark Roast (Lelit Victoria + IMS):</strong> Schokolade + Nuss + Karamell – die drei klassischen Maillard-Marker</div>
+<p style="font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));color:var(--mid)">Tipp: Beim Verkosten erst <strong>riechen</strong>, dann schlucken, dann nachschmecken. Aromen treten in 3 Phasen auf (Nase → Mund → Nachklang).</p>`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function showCremaInfo(){
+  document.getElementById('modal-title').textContent='Crema – Beurteilung';
+  document.getElementById('modal-body').innerHTML=`
+<p style="font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));line-height:1.6">
+<strong style="color:var(--crema)">Was zeigt die Crema?</strong><br>
+Crema ist eine Emulsion aus CO₂, Wasser und Ölen. Sie ist Indikator für:<br>
+• Frische der Bohne (CO₂)<br>
+• Gleichmäßigkeit der Extraktion<br>
+• Druck der Maschine<br>
+• Korbqualität</p>
+<div class="crema-examples">
+<div class="crema-ex"><div class="crema-ex-img" style="background:linear-gradient(135deg,#8B4513,#C8974A)">🟫</div><div class="crema-ex-label">Dicht & Haselnuss ✓<br><strong style="color:var(--green)">Ideal</strong></div></div>
+<div class="crema-ex"><div class="crema-ex-img" style="background:linear-gradient(135deg,#5c3317,#8B4513,#C8974A,#8B4513)">🐯</div><div class="crema-ex-label">Tigerstreifig ★<br><strong style="color:var(--green)">Perfekt</strong></div></div>
+<div class="crema-ex"><div class="crema-ex-img" style="background:linear-gradient(135deg,#2d0d00,#5c1a00)">⬛</div><div class="crema-ex-label">Dunkel & Stark<br><strong style="color:var(--red)">Überextr.</strong></div></div>
+<div class="crema-ex"><div class="crema-ex-img" style="background:linear-gradient(135deg,#d4a96a,#f0d5a0)">🟨</div><div class="crema-ex-label">Hell & Dünn<br><strong style="color:var(--red)">Unterextr.</strong></div></div>
+</div>
+<div class="info-visual">
+<div class="info-visual-title">Diagnose nach Bild</div>
+<div class="info-row"><span class="info-row-emoji">🐯</span><span class="info-row-label">Tigerstreifen</span><span class="info-row-text">Dunkle Streifen auf hellem Grund = frische Bohne, gleichmäßiger Fluss</span></div>
+<div class="info-row"><span class="info-row-emoji">🟫</span><span class="info-row-label">Goldbraun</span><span class="info-row-text">3–5mm dick, hält 1–2 min = solide Extraktion</span></div>
+<div class="info-row"><span class="info-row-emoji">🤍</span><span class="info-row-label">Hell/dünn</span><span class="info-row-text">Bohne alt, Mahlgrad zu grob oder Wasser zu kalt</span></div>
+<div class="info-row"><span class="info-row-emoji">⬛</span><span class="info-row-label">Sehr dunkel/ölig</span><span class="info-row-text">Überextraktion, Temp zu hoch oder zu fein gemahlen</span></div>
+<div class="info-row"><span class="info-row-emoji">🕳</span><span class="info-row-label">Grobporig</span><span class="info-row-text">Channeling – WDT-Tool + sauberes Tampen</span></div>
+</div>
+<p style="font-family:'Courier New',monospace;font-size:calc(.6rem*var(--font-scale));color:var(--mid)">Crema verschwindet nach 1–3 min vollständig – das ist normal. Halten die Bläschen ungewöhnlich lang, war zu viel Robusta im Spiel.</p>`;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function closeModal(e){if(e&&e.target.closest&&e.target.closest('.modal')&&!e.target.classList.contains('modal-close'))return;document.getElementById('modal-bg').classList.remove('show');}
+
+// ============================================================
+// EXPORT & BACKUP
+// ============================================================
+function downloadFile(content,filename,mime){const blob=new Blob([content],{type:mime+';charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),100);}
+function csvEscape(v){if(v===null||v===undefined)return'';const s=String(v);return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s;}
+
+function exportRangliste(format){
+  const entries=Object.entries(data).map(([name,shots])=>{const sorted=[...shots].sort((a,b)=>b.score-a.score);const top=sorted.slice(0,3);const rankScore=top3Avg(shots);const best=sorted[0];const ratios=top.map(s=>s.ratio).filter(Boolean);const avgRatio=ratios.length?(ratios.reduce((a,r)=>a+parseFloat(r),0)/ratios.length).toFixed(2):null;return{name,best,rankScore,count:shots.length,avgRatio,topCount:top.length};}).sort((a,b)=>b.rankScore-a.rankScore);
+  if(!entries.length){alert('Keine Daten.');return;}
+  const ts=new Date().toISOString().slice(0,10);
+  if(format==='csv'){const headers=['Rang','Kaffee','Top-3 Score','Bezüge','Bester Score','Dose','Yield','Ratio','Zeit','MG','Temp','PI','Sterne'];const rows=entries.map((e,i)=>[i+1,e.name,e.rankScore,e.count,e.best.score,e.best.doseIn,e.best.doseOut,e.best.ratio?'1:'+e.best.ratio:'',e.best.zeit,e.best.mahlgrad,e.best.temp,e.best.pi,e.best.sterne]);downloadFile('\uFEFF'+[headers,...rows].map(r=>r.map(csvEscape).join(',')).join('\n'),`espresso-rangliste-${ts}.csv`,'text/csv');}
+  else{const lines=['ESPRESSO RANGLISTE','='.repeat(40),`Export: ${new Date().toLocaleString('de-DE')}`,''];entries.forEach((e,i)=>{lines.push(`${i+1}. ${e.name}`);lines.push(`   Top-3 Ø: ${e.rankScore} (${e.count} Bezüge)`);lines.push(`   Bester: ${e.best.doseIn}g→${e.best.doseOut||'?'}g · 1:${e.best.ratio||'?'} · ${e.best.zeit||'?'}s${e.best.pi?' · PI'+e.best.pi+'s':''} · ${'★'.repeat(e.best.sterne)}`);lines.push('');});downloadFile(lines.join('\n'),`espresso-rangliste-${ts}.txt`,'text/plain');}
+}
+
+function exportAlle(format){
+  const all=[];Object.entries(data).forEach(([name,shots])=>shots.forEach(s=>all.push({...s,kaffee:name})));
+  if(!all.length){alert('Keine Daten.');return;}
+  const sorted=[...all].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));const ts=new Date().toISOString().slice(0,10);
+  if(format==='csv'){const headers=['Datum','Kaffee','Dose','Yield','Ratio','Zeit','MG','Temp','PI','Säure','Bitter','Süße','Körper','Nachklang','Aromen','Crema','Sterne','Score','Empfehlung','Notizen'];const rows=sorted.map(s=>[s.ts,s.kaffee,s.doseIn,s.doseOut,s.ratio?'1:'+s.ratio:'',s.zeit,s.mahlgrad,s.temp,s.pi,s.saeure,s.bitter,s.suesse,s.koerper,s.nachklang,(s.aromen||[]).join('; '),s.crema||'',s.sterne,s.score,s.empfehlung==='ja'?'Ja':s.empfehlung==='nein'?'Nein':'',s.notizen||'']);downloadFile('\uFEFF'+[headers,...rows].map(r=>r.map(csvEscape).join(',')).join('\n'),`espresso-alle-${ts}.csv`,'text/csv');}
+  else{const lines=['ESPRESSO PROTOKOLL','='.repeat(40),`Export: ${new Date().toLocaleString('de-DE')}`,`${all.length} Bezüge gesamt`,''];sorted.forEach((s,i)=>{lines.push(`#${all.length-i} ${s.ts} · ${s.kaffee}`);lines.push(`  ${s.doseIn}g→${s.doseOut||'?'}g · 1:${s.ratio||'?'} · ${s.zeit||'?'}s · MG${s.mahlgrad||'?'}${s.temp?' · '+s.temp+'°C':''}${s.pi?' · PI'+s.pi+'s':''}`);lines.push(`  ${'★'.repeat(s.sterne)} · Score ${s.score}`);if(s.notizen)lines.push(`  "${s.notizen}"`);lines.push('');});downloadFile(lines.join('\n'),`espresso-alle-${ts}.txt`,'text/plain');}
+}
+
+function backupData(){const backup={version:7,exportedAt:new Date().toISOString(),data,customKaffees,settings};downloadFile(JSON.stringify(backup,null,2),`espresso-backup-${new Date().toISOString().slice(0,10)}.json`,'application/json');}
+
+function restoreData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{const backup=JSON.parse(e.target.result);if(!backup.data)throw new Error('Ungültiges Backup');
+    const cnt=Object.values(backup.data).reduce((a,s)=>a+s.length,0);
+    if(!confirm(`Backup: ${cnt} Bezüge. Aktuelle Daten überschreiben?`))return;
+    data=backup.data;if(backup.customKaffees){customKaffees=backup.customKaffees;saveCustom();}
+    if(backup.settings){settings={...settings,...backup.settings};saveSettings();applyTheme();}
+    saveData();buildPills();renderDashboard();alert(`✓ ${cnt} Bezüge wiederhergestellt.`);
+    }catch(err){alert('Fehler: '+err.message);}event.target.value='';
+  };reader.readAsText(file);
+}
+
+function clearAllData(){if(!confirm('Alle Daten löschen?'))return;if(!confirm('Wirklich? Nicht rückgängig machbar!'))return;data={};saveData();curKaffee=null;document.getElementById('form-area').style.display='none';document.getElementById('no-selection').style.display='block';buildPills();renderDashboard();alert('Daten gelöscht.');}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  ['dashboard','bewertung','rangliste','einstellungen'].forEach(tab=>{document.getElementById('tab-'+tab).style.display=tab===t?'block':'none';});
+  if(t==='dashboard')renderDashboard();
+  if(t==='rangliste')renderRangliste();
+  if(t==='einstellungen'){applyTheme();const el=document.getElementById('data-info');const total=Object.values(data).reduce((a,s)=>a+s.length,0);if(el)el.textContent=`${total} Bezüge · ${Object.keys(data).length} Kaffeesorten`;}
+}
+
+// ============================================================
+// SERVICE WORKER
+// ============================================================
+// SERVICE WORKER – Network-First für automatisches Update
+// ============================================================
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js')
+    .then(reg=>{
+      // Wenn ein neuer SW gefunden wird: sofort aktivieren
+      reg.addEventListener('updatefound',()=>{
+        const sw=reg.installing;
+        sw.addEventListener('statechange',()=>{
+          if(sw.state==='installed') sw.postMessage({type:'SKIP_WAITING'});
+        });
+      });
+    })
+    .catch(()=>{});
+  // Wenn neuer SW übernimmt → Seite neu laden (holt frisches index.html)
+  navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
+}
+
+// ============================================================
+// TRAINER RECOMMENDATION ENGINE
+// ============================================================
+
+// Bean profiles – standard recommendations per bean type
+const BEAN_PROFILES = {
+  // Dinzler
+  "dinzler roma":      { mahlgrad:[3,4.5], temp:[91,93], output:[38,44], roast:"dark",
+    blend:"80% Arabica / 20% Robusta", taste:"Schokolade, Karamell, vollmundig",
+    herkunft:"Rosenheim, Dinzler Rösterei",
+    notes:"Klassiker · säurearm · 91°C Startpunkt · Zeit ab erstem Tropfen messen" },
+  "dinzler modena":    { mahlgrad:[3.5,4.5], temp:[91,92], output:[40,44], roast:"dark",
+    blend:"100% Arabica", taste:"Vollmundig, Schokolade, wenig Säure",
+    herkunft:"Rosenheim, Dinzler Rösterei",
+    notes:"Vollmundig, wenig Säure, cremig · ähnlich Roma aber reiner Arabica" },
+  "dinzler il gustoso":{ mahlgrad:[4,5], temp:[92,93], output:[40,44], roast:"medium",
+    blend:"100% Arabica", taste:"Ausgewogen, Karamell, leicht fruchtig",
+    herkunft:"Rosenheim, Dinzler Rösterei",
+    notes:"Ausgewogen, etwas mehr Säure als Roma · heller geröstet" },
+  "dinzler lazise":    { mahlgrad:[4,5], temp:[92,93], output:[40,44], roast:"medium",
+    blend:"100% Arabica", taste:"Mild, fruchtige Note, Karamell",
+    herkunft:"Rosenheim, Dinzler Rösterei",
+    notes:"Milder, fruchtige Note möglich · gut für Einsteiger" },
+  "dinzler venezia":   { mahlgrad:[4,5], temp:[92,93], output:[42,46], roast:"medium",
+    blend:"100% Arabica", taste:"Ausgewogen, klassisch, nussig",
+    herkunft:"Rosenheim, Dinzler Rösterei",
+    notes:"Ausgewogen, klassisch-venezianisch · etwas mehr Output" },
+  // Gorilla
+  "gorilla":           { mahlgrad:[3.5,5], temp:[90,92], output:[38,44], roast:"dark",
+    blend:"85% Arabica / 15% Robusta", taste:"Schokolade, Nuss, Karamell",
+    notes:"Neigt zu Bitterkeit bei Überextraktion · max 91°C · MG 4-4.5 · Zeit 24-26s · Vorsicht Asche" },
+  // Passalacqua Mehari – Mehari ist ein Blend von Passalacqua (Neapel, seit 1948)
+  "passalacqua": { mahlgrad:[3,4.5], temp:[90,92], output:[38,43], roast:"dark",
+    blend:"50% Arabica / 50% Robusta", taste:"Dunkle Schokolade, dichte Crema, vollmundig",
+    herkunft:"Casavatore/Neapel, Passalacqua seit 1948", inei:true,
+    notes:"Mehari ist Passalacquas Klassiker · 50/50 für stabile dichte Crema · säurearm · Temp max 92°C · MG 3-3.5 fein starten · Pre-Infusion 3-4s · kurze Bezugszeit 25-28s" },
+  "mehari": { mahlgrad:[3,4.5], temp:[90,92], output:[38,43], roast:"dark",
+    blend:"50% Arabica / 50% Robusta", taste:"Dunkle Schokolade, dichte Crema, vollmundig",
+    herkunft:"Casavatore/Neapel, Passalacqua seit 1948", inei:true,
+    notes:"Mehari ist Passalacquas Klassiker · 50/50 für stabile dichte Crema · säurearm · Temp max 92°C · MG 3-3.5 fein starten · Pre-Infusion 3-4s · kurze Bezugszeit 25-28s" },
+  // Kimbo
+  "kimbo": { mahlgrad:[3,4.5], temp:[90,92], output:[38,42], roast:"dark",
+    blend:"70% Arabica / 30% Robusta", taste:"Schokolade, Haselnuss, dichte Crema",
+    herkunft:"Neapel, seit 1963",
+    notes:"Klassisch neapolitanisch · hoher Robusta für stabile Crema · säurearm · Temp max 92°C · MG 3-4 · kurze Bezugszeit" },
+  // Oh Harvey
+  "oh harvey": { mahlgrad:[4,5.5], temp:[92,94], output:[42,46], roast:"medium",
+    blend:"80% Arabica / 20% Robusta", taste:"Schokolade, Würze, mild-kräftig",
+    herkunft:"Hamburg, Quijote Rösterei",
+    notes:"Testsieger mehrerer Tests · Specialty-orientiert · leichte helle Fruchtsäure · höhere Temp nötig (92-94°C) · Ratio 1:2,4-1:2,6 · gut für Cappuccino" },
+  // Geisenhofer
+  "geisenhofer house blend": { mahlgrad:[3.5,4.5], temp:[91,92], output:[40,44], roast:"dark",
+    blend:"60% Arabica / 40% Robusta", taste:"Nuss, Schokolade, cremig",
+    herkunft:"München, lokale Rösterei",
+    notes:"60/40 Arabica/Robusta · säurearm · kräftige dichte Crema · Sweet Spot MG 3.5-4 · 19g Dose · lokaler Liebling" },
+  "geisenhofer first roast": { mahlgrad:[4,5.5], temp:[92,94], output:[42,46], roast:"medium",
+    blend:"100% Arabica", taste:"fruchtig, hell, Karamell",
+    herkunft:"München, lokale Rösterei",
+    notes:"Heller geröstet · mehr Säure möglich · höhere Temp · längere Bezugszeit" },
+  "default": { mahlgrad:[3.5,5], temp:[91,93], output:[40,44], roast:"medium",
+    notes:"Standard-Empfehlung für dein Setup" }
+};
+
+function getBeanProfile(kaffee) {
+  const k = kaffee.toLowerCase();
+  for (const [key, profile] of Object.entries(BEAN_PROFILES)) {
+    if (key !== 'default' && k.includes(key)) return { ...profile, key };
+  }
+  return { ...BEAN_PROFILES.default, key: 'default' };
+}
+
+// ============================================================
+// SELBSTLERNENDER BOHNEN-EMPFEHLUNGS-ALGORITHMUS
+// Lernt aus allen Bewertungen: was funktioniert bei dir wirklich?
+// ============================================================
+
+function learnFromAllShots() {
+  // Sammle alle guten Bezüge über alle Bohnen
+  const allGood = [];
+  for (const [bean, shots] of Object.entries(data)) {
+    for (const s of shots) {
+      if (s.score >= 70 && s.mahlgrad && s.temp) {
+        allGood.push({ ...s, bean });
+      }
+    }
+  }
+  if (allGood.length < 5) return null;
+
+  // Lerne: welche Slider-Werte korrelieren mit hohem Score?
+  const learnedPrefs = {};
+  const sliderIds = ['saeure','bitter','suesse','koerper','nachklang'];
+
+  for (const sid of sliderIds) {
+    const vals = allGood.filter(s => s[sid] != null).map(s => ({
+      val: s[sid], score: s.score
+    }));
+    if (vals.length < 3) continue;
+    // Gewichteter Durchschnitt der Idealwerte
+    const totalW = vals.reduce((a,v) => a + v.score, 0);
+    if(!totalW) continue;
+    learnedPrefs[sid] = Math.round(vals.reduce((a,v) => a + v.val * v.score, 0) / totalW * 10) / 10;
+  }
+
+  // Lerne: bevorzugter Mahlgrad, Temp, Ratio
+  const wAvg = (field) => {
+    const vals = allGood.filter(s => !isNaN(parseFloat(s[field])));
+    if (!vals.length) return null;
+    const tw = vals.reduce((a,s) => a + s.score, 0);
+    return vals.reduce((a,s) => a + parseFloat(s[field]) * s.score, 0) / tw;
+  };
+
+  const avgMG = wAvg('mahlgrad');
+  const avgTemp = wAvg('temp');
+  const avgRatio = wAvg('ratio');
+  const avgPI = wAvg('pi');
+
+  // Beste Aromen aus Top-Bezügen
+  const topShots = allGood.sort((a,b) => b.score - a.score).slice(0, 10);
+  const aromaCount = {};
+  for (const s of topShots) {
+    if (s.aromen) for (const a of s.aromen) aromaCount[a] = (aromaCount[a]||0) + 1;
+  }
+  const topAromen = Object.entries(aromaCount).sort((a,b) => b[1]-a[1]).slice(0,3).map(x=>x[0]);
+
+  return {
+    learnedPrefs,
+    avgMG: avgMG ? Math.round(avgMG * 10) / 10 : null,
+    avgTemp: avgTemp ? Math.round(avgTemp * 10) / 10 : null,
+    avgRatio: avgRatio ? Math.round(avgRatio * 100) / 100 : null,
+    avgPI: avgPI ? Math.round(avgPI * 10) / 10 : null,
+    topAromen,
+    basedOn: allGood.length,
+    topScore: topShots[0]?.score || 0
+  };
+}
+
+// Passt Bean-Profil anhand gelernter Präferenzen an
+function getLearnedProfile(kaffee) {
+  const base = getBeanProfile(kaffee);
+  const learned = learnFromAllShots();
+  if (!learned || !learned.avgMG) return { ...base, learned: false };
+
+  // Feinjustierung: lerne ob du tendenziell feiner/gröber mahlst als Standard
+  const shots = data[kaffee] || [];
+  const goodShots = shots.filter(s => s.score >= 70 && s.mahlgrad);
+
+  // Bohnen-spezifisch gelernt?
+  if (goodShots.length >= 3) {
+    // Genug Daten für diese Bohne → calcAdaptiveRec macht das bereits
+    return { ...base, learned: true, learnedGlobal: learned };
+  }
+
+  // Noch wenig Daten für diese Bohne → nutze globale Lernkurve zur Anpassung
+  // Offset: wie weiche ich vom Standard ab?
+  const allBeanShots = Object.values(data).flat().filter(s => s.score >= 70 && s.mahlgrad);
+  if (allBeanShots.length < 5) return { ...base, learned: false };
+
+  // Zeige Hinweis: "Basiert auf X Bezügen über alle Bohnen"
+  return {
+    ...base,
+    learned: true,
+    learnedGlobal: learned,
+    mahlgrad: learned.avgMG ? [
+      Math.round((base.mahlgrad[0] + (learned.avgMG - (base.mahlgrad[0]+base.mahlgrad[1])/2) * 0.3) * 2) / 2,
+      Math.round((base.mahlgrad[1] + (learned.avgMG - (base.mahlgrad[0]+base.mahlgrad[1])/2) * 0.3) * 2) / 2
+    ] : base.mahlgrad,
+    temp: learned.avgTemp ? [
+      Math.round(base.temp[0] + (learned.avgTemp - (base.temp[0]+base.temp[1])/2) * 0.2),
+      Math.round(base.temp[1] + (learned.avgTemp - (base.temp[0]+base.temp[1])/2) * 0.2)
+    ] : base.temp,
+  };
+}
+
+// Zeigt Lern-Status als Badge
+function getLernBadge() {
+  const learned = learnFromAllShots();
+  if (!learned) return '';
+  const total = Object.values(data).flat().length;
+  const good = learned.basedOn;
+  if (good < 3) return `<span class="badge" style="background:rgba(200,151,74,0.1);border-color:var(--border);color:var(--mid)">Lernend ${good}/3</span>`;
+  return `<span class="badge" style="background:rgba(90,184,58,0.15);border-color:rgba(90,184,58,0.4);color:var(--green)">Gelernt · ${good} Bezüge</span>`;
+}
+
+// Info über gelerntes Profil anzeigen
+function showLearnedInfo(kaffee) {
+  const learned = learnFromAllShots();
+  const shots = data[kaffee] || [];
+  const adaptive = calcAdaptiveRec(shots);
+  const goodShots = shots.filter(s => s.score >= 60);
+
+  let html = `<div style="font-family:'Courier New',monospace;font-size:calc(.62rem*var(--font-scale));line-height:1.9">`;
+
+  // Bohnen-spezifisch
+  html += `<strong style="color:var(--crema)">📊 ${kaffee}:</strong><br>`;
+  html += `${shots.length} Bezüge · ${goodShots.length} gute (Score ≥60)<br>`;
+  if(adaptive) {
+    html += `<span style="color:var(--green)">✓ Adaptiv aktiv</span> – aus ${adaptive.basedOn} guten Bezügen<br>`;
+    if(adaptive.trend !== null) {
+      const arrow = adaptive.trend > 3 ? '↑ Verbesserung' : adaptive.trend < -3 ? '↓ Rückgang' : '→ Stabil';
+      const col = adaptive.trend > 3 ? 'var(--green)' : adaptive.trend < -3 ? 'var(--red)' : 'var(--mid)';
+      html += `Trend: <span style="color:${col}">${arrow} (${adaptive.trend>0?'+':''}${adaptive.trend} Pkt.)</span><br>`;
+    }
+    if(adaptive.bestShot) {
+      const b = adaptive.bestShot;
+      html += `Bester Bezug: <strong style="color:var(--crema)">${b.score} Pkt.</strong> · MG${b.mahlgrad||'?'} · ${b.temp||'?'}°C${b.pi?' · PI'+b.pi+'s':''} · ${b.doseOut||'?'}g<br>`;
+    }
+  } else {
+    const missing = Math.max(0, 2 - goodShots.length);
+    html += `<span style="color:var(--mid)">Noch ${missing} gut${missing===1?'en':'e'} Bezug${missing===1?'':'e'} bis adaptive Empfehlung</span><br>`;
+  }
+
+  // Global
+  html += `<br><strong style="color:var(--crema)">🌍 Über alle Bohnen:</strong><br>`;
+  if(learned && learned.basedOn >= 3) {
+    html += `Aus ${learned.basedOn} guten Bezügen gelernt:<br>`;
+    if(learned.avgMG)    html += `Ø Mahlgrad: <strong style="color:var(--crema)">${learned.avgMG}</strong><br>`;
+    if(learned.avgTemp)  html += `Ø Temp: <strong style="color:var(--crema)">${learned.avgTemp}°C</strong><br>`;
+    if(learned.avgRatio) html += `Ø Ratio: <strong style="color:var(--crema)">1:${learned.avgRatio}</strong><br>`;
+    if(learned.avgPI)    html += `Ø PI: <strong style="color:var(--crema)">${learned.avgPI}s</strong><br>`;
+    if(learned.topAromen.length) html += `Top-Aromen: <strong style="color:var(--crema)">${learned.topAromen.join(' · ')}</strong><br>`;
+  } else {
+    const need = Math.max(0, 3-(learned?.basedOn||0));
+    html += `<span style="color:var(--mid)">Noch ${need} gute Bezüge (über alle Bohnen) nötig</span><br>`;
+  }
+
+  html += `</div>`;
+  document.getElementById('modal-title').textContent = '🧠 Was ich gelernt habe';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+// Adaptive learning: calculate recommendation from good shots
+function calcAdaptiveRec(shots) {
+  if (!shots || shots.length < 3) return null;
+
+  // Take shots with score >= 60, sorted by score desc, up to 5
+  const goodShots = [...shots]
+    .filter(s => s.score >= 60 && s.mahlgrad && s.temp && s.doseOut)
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 5);
+
+  if (goodShots.length < 2) return null;
+
+  // Tip-followup weight multiplier: 'ja' → +30%, 'nein' → -30%
+  const tipWeight = (shot) => {
+    if (!shot.tips || !shot.tips.length) return 1.0;
+    const resolved = shot.tips.filter(t => t.followup && t.resolved != null && t.resolved !== undefined);
+    if (!resolved.length) return 1.0;
+    const ja = resolved.filter(t => t.resolved === 'ja').length;
+    const nein = resolved.filter(t => t.resolved === 'nein').length;
+    if (ja > nein) return 1.3;
+    if (nein > ja) return 0.7;
+    return 1.0;
+  };
+
+  // Weighted average (higher score + tip feedback = more weight)
+  const totalWeight = goodShots.reduce((a,s) => a + s.score * tipWeight(s), 0);
+  const wAvg = (field) => {
+    const vals = goodShots.filter(s => !isNaN(parseFloat(s[field])));
+    const val = vals.reduce((a,s) => a + parseFloat(s[field]) * s.score * tipWeight(s), 0);
+    const validWeight = vals.reduce((a,s) => a + s.score * tipWeight(s), 0);
+    return validWeight > 0 ? val / validWeight : null;
+  };
+
+  const avgMahlgrad = wAvg('mahlgrad');
+  const avgTemp = wAvg('temp');
+  const avgOutput = wAvg('doseOut');
+  const avgPI = wAvg('pi');
+  const avgScore = Math.round(goodShots.reduce((a,s)=>a+s.score,0) / goodShots.length);
+
+  // Trend: Ø Score letzte 3 Bezüge vs. die 3 davor
+  const byTime = [...shots].sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+  const recent3 = byTime.slice(-3);
+  const older3 = byTime.slice(-6,-3);
+  let trend = null;
+  if(recent3.length >= 2 && older3.length >= 2) {
+    const rAvg = recent3.reduce((a,s)=>a+s.score,0)/recent3.length;
+    const oAvg = older3.reduce((a,s)=>a+s.score,0)/older3.length;
+    trend = Math.round(rAvg - oAvg);
+  }
+
+  const bestShot = [...shots].sort((a,b)=>b.score-a.score)[0];
+
+  return {
+    mahlgrad: avgMahlgrad ? [
+      Math.round((avgMahlgrad - 0.5) * 2) / 2,
+      Math.round((avgMahlgrad + 0.5) * 2) / 2
+    ] : null,
+    temp: avgTemp ? [
+      Math.round(avgTemp - 1),
+      Math.round(avgTemp + 1)
+    ] : null,
+    output: avgOutput ? [
+      Math.round(avgOutput - 2),
+      Math.round(avgOutput + 2)
+    ] : null,
+    pi: avgPI > 0 ? Math.round(avgPI * 2) / 2 : null,
+    basedOn: goodShots.length,
+    avgScore,
+    trend,
+    bestShot,
+    shots: goodShots
+  };
+}
+
+// ============================================================
+// VERLAUFS-ANALYSE
+// Wertet aus, wie sich vergangene Mahlgrad-/Temperatur-Änderungen
+// auf den Score ausgewirkt haben (Bezug zu Bezug, chronologisch).
+// ============================================================
+function analyzeParamTrends(shots) {
+  if (!shots || shots.length < 3) return null;
+  const byTime = [...shots].filter(s => s.timestamp).sort((a,b) => a.timestamp - b.timestamp);
+  if (byTime.length < 3) return null;
+
+  const mgPairs = [], tempPairs = [];
+  for (let i = 1; i < byTime.length; i++) {
+    const prev = byTime[i-1], cur = byTime[i];
+    if (typeof cur.score !== 'number' || typeof prev.score !== 'number') continue;
+    const dScore = cur.score - prev.score;
+    const mgP = parseFloat(prev.mahlgrad), mgC = parseFloat(cur.mahlgrad);
+    const tP = parseFloat(prev.temp), tC = parseFloat(cur.temp);
+    if (!isNaN(mgP) && !isNaN(mgC) && Math.abs(mgC - mgP) >= 0.3) mgPairs.push({ d: mgC - mgP, dScore });
+    if (!isNaN(tP) && !isNaN(tC) && Math.abs(tC - tP) >= 0.5) tempPairs.push({ d: tC - tP, dScore });
+  }
+
+  const summarize = (pairs) => {
+    if (pairs.length < 2) return null;
+    const up = pairs.filter(p => p.d > 0), down = pairs.filter(p => p.d < 0);
+    const avg = (arr) => arr.length ? Math.round(arr.reduce((a,p) => a + p.dScore, 0) / arr.length) : null;
+    return { n: pairs.length, upN: up.length, downN: down.length, avgUp: avg(up), avgDown: avg(down) };
+  };
+
+  const mg = summarize(mgPairs), temp = summarize(tempPairs);
+  if (!mg && !temp) return null;
+  return { mg, temp };
+}
+
+// Baut eine Verlaufs-Analyse-Zeile für einen Parameter
+function trendRowHtml(sum, paramLabel, upTxt, downTxt) {
+  if (!sum) return '';
+  const seg = [];
+  if (sum.downN) seg.push(`${downTxt}: Ø ${sum.avgDown > 0 ? '+' : ''}${sum.avgDown} Pkt (${sum.downN}×)`);
+  if (sum.upN) seg.push(`${upTxt}: Ø ${sum.avgUp > 0 ? '+' : ''}${sum.avgUp} Pkt (${sum.upN}×)`);
+  let verdict, vcol;
+  if (sum.upN && sum.downN) {
+    if (sum.avgDown > sum.avgUp + 1) { verdict = `→ eher ${downTxt}`; vcol = 'var(--green)'; }
+    else if (sum.avgUp > sum.avgDown + 1) { verdict = `→ eher ${upTxt}`; vcol = 'var(--green)'; }
+    else { verdict = 'kein klarer Effekt'; vcol = 'var(--mid)'; }
+  } else if (sum.downN) {
+    verdict = sum.avgDown > 1 ? `→ ${downTxt} half` : sum.avgDown < -1 ? `→ ${downTxt} war schlechter` : 'noch unklar';
+    vcol = sum.avgDown > 1 ? 'var(--green)' : sum.avgDown < -1 ? 'var(--red)' : 'var(--mid)';
+  } else {
+    verdict = sum.avgUp > 1 ? `→ ${upTxt} half` : sum.avgUp < -1 ? `→ ${upTxt} war schlechter` : 'noch unklar';
+    vcol = sum.avgUp > 1 ? 'var(--green)' : sum.avgUp < -1 ? 'var(--red)' : 'var(--mid)';
+  }
+  return `<div class="trainer-trend-row">
+    <div class="trainer-trend-head">
+      <span class="trainer-trend-param">${paramLabel}</span>
+      <span class="trainer-trend-verdict" style="color:${vcol}">${verdict}</span>
+    </div>
+    <div class="trainer-trend-detail">${seg.join(' · ')}</div>
+  </div>`;
+}
+
+function renderParamTrends(shots) {
+  const t = analyzeParamTrends(shots);
+  if (!t) return '';
+  const mgHtml = trendRowHtml(t.mg, 'Mahlgrad', 'gröber', 'feiner');
+  const tempHtml = trendRowHtml(t.temp, 'Temperatur', 'wärmer', 'kühler');
+  if (!mgHtml && !tempHtml) return '';
+  return `<div class="trainer-trends">
+    <div class="trainer-history-title">📈 Verlaufs-Analyse · Änderung → Score</div>
+    ${mgHtml}${tempHtml}
+  </div>`;
+}
+
+function renderTrainerRec(kaffee) {
+  const el = document.getElementById('trainer-rec');
+  if (!el) return;
+  const shots = data[kaffee] || [];
+  const profile = getBeanProfile(kaffee);
+  const adaptive = calcAdaptiveRec(shots);
+  const useAdaptive = adaptive !== null;
+
+  // Decide which values to show
+  const rec = useAdaptive ? {
+    mahlgrad: adaptive.mahlgrad,
+    temp: adaptive.temp,
+    output: adaptive.output,
+    pi: adaptive.pi
+  } : {
+    mahlgrad: profile.mahlgrad,
+    temp: profile.temp,
+    output: profile.output,
+    pi: null
+  };
+
+  // Format ranges
+  const fmtRange = (r, unit='') => r ? `${r[0]}–${r[1]}${unit}` : '–';
+  const fmtPI = (pi) => pi ? `${pi}s` : '0-4s';
+
+  // Last 5 shots for history visualization
+  const lastShots = [...shots].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).slice(0,5).reverse();
+  const maxScore = lastShots.length ? Math.max(...lastShots.map(s=>s.score), 1) : 1;
+
+  const historyHtml = lastShots.length > 0 ? `
+    <div class="trainer-history">
+      <div class="trainer-history-title">Letzte ${lastShots.length} Bezüge</div>
+      ${lastShots.map(s => {
+        const pct = Math.round((s.score/maxScore)*100);
+        const col = s.score >= 80 ? 'var(--green)' : s.score >= 65 ? 'var(--crema)' : 'var(--mid)';
+        return `<div class="trainer-shot-row">
+          <div class="trainer-shot-bar-wrap"><div class="trainer-shot-bar" style="width:${pct}%;background:${col}"></div></div>
+          <div class="trainer-shot-info">MG${s.mahlgrad||'?'} ${s.temp||'?'}°C ${s.doseOut||'?'}g → ${s.score}pt</div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  // Apply button prefills form
+  const applyValues = {
+    mahlgrad: rec.mahlgrad ? ((rec.mahlgrad[0]+rec.mahlgrad[1])/2).toFixed(1) : '',
+    temp: rec.temp ? Math.round((rec.temp[0]+rec.temp[1])/2) : '',
+    pi: rec.pi || ''
+  };
+
+  // Unresolved followups from the last shot → show prominently at top
+  const lastShot = shots.length ? shots[shots.length-1] : null;
+  let followupTopHtml = '';
+  if (lastShot && lastShot.tips) {
+    const kEsc = kaffee.replace(/'/g,"\\'");
+    const lastIdx = shots.length - 1;
+    const pending = lastShot.tips
+      .map((t,tIdx) => ({t,tIdx}))
+      .filter(({t}) => t.followup && (t.resolved===null||t.resolved===undefined));
+    if (pending.length) {
+      followupTopHtml = `<div class="followup-top-card">
+        <div class="followup-top-title">💬 Feedback zum letzten Bezug</div>
+        ${pending.map(({t,tIdx}) => `
+          <div class="followup-top-q">${t.followup}</div>
+          <div class="yn-row">
+            <button onclick="answerFollowup('${kEsc}',${lastIdx},${tIdx},'ja')" style="color:var(--green);border-color:var(--green)">✓ Ja, besser</button>
+            <button onclick="answerFollowup('${kEsc}',${lastIdx},${tIdx},'nein')" style="color:var(--red);border-color:var(--red)">✗ Nein</button>
+            <button onclick="answerFollowup('${kEsc}',${lastIdx},${tIdx},'skip')">— Skip</button>
+          </div>`).join('')}
+      </div>`;
+    }
+  }
+
+  el.innerHTML = `
+    <div class="trainer-card">
+      ${followupTopHtml}
+      <div class="trainer-header">
+        <span class="trainer-icon">🎯</span>
+        <div>
+          <div class="trainer-title">Trainer-Empfehlung</div>
+          <div class="trainer-subtitle">${useAdaptive ? `Adaptiv – aus ${adaptive.basedOn} guten Bezügen (Ø ${adaptive.avgScore})${adaptive.trend !== null ? (adaptive.trend > 3 ? ' <span style="color:var(--green)">↑ +'+adaptive.trend+'Pkt</span>' : adaptive.trend < -3 ? ' <span style="color:var(--red)">↓ '+adaptive.trend+'Pkt</span>' : '') : ''}` : `Standard-Profil · ${profile.roast === 'dark' ? 'Dark Roast' : 'Medium Roast'}`}</div>
+        </div>
+        <button class="info-btn" style="margin-left:auto;width:22px;height:22px;font-size:.7rem" onclick="showLearnedInfo('${kaffee.replace(/'/g,"\\'")}')">🧠</button>
+      </div>
+      <div class="trainer-grid">
+        <div class="trainer-param">
+          <div class="trainer-param-label">Mahlgrad</div>
+          <div class="trainer-param-value">${fmtRange(rec.mahlgrad)}</div>
+          <div class="trainer-param-sub">Finecoar</div>
+        </div>
+        <div class="trainer-param">
+          <div class="trainer-param-label">Brühtemp</div>
+          <div class="trainer-param-value">${fmtRange(rec.temp, '°')}</div>
+          <div class="trainer-param-sub">°C</div>
+        </div>
+        <div class="trainer-param">
+          <div class="trainer-param-label">Output</div>
+          <div class="trainer-param-value">${fmtRange(rec.output, 'g')}</div>
+          <div class="trainer-param-sub">bei 18g</div>
+        </div>
+      </div>
+      <div class="trainer-source">
+        ${useAdaptive
+          ? `⚡ Lernend – verbessert sich mit jedem Bezug`
+          : `📚 Standard · ${profile.notes}`}
+        ${rec.pi ? ` · PI ${rec.pi}s empfohlen` : ''}
+        ${profile.blend || profile.herkunft ? `<br><button style="margin-top:6px;background:var(--crema2);border:1px solid var(--border);color:var(--crema);padding:3px 10px;border-radius:6px;font-family:'Courier New',monospace;font-size:calc(.52rem*var(--font-scale));cursor:pointer" onclick="showBohnenInfo('${kaffee.replace(/'/g,"\\'")}')">ℹ Bohnen-Details</button>` : ''}
+      </div>
+      ${historyHtml}
+      ${renderParamTrends(shots)}
+      <button class="trainer-apply-btn" onclick="applyTrainerRec(${JSON.stringify(applyValues).replace(/"/g,'&quot;')})">
+        ↓ Mittelwert ins Formular übernehmen
+      </button>
+    </div>`;
+  el.style.display = 'block';
+}
+
+function applyTrainerRec(values) {
+  if (values.mahlgrad) {
+    const el = document.getElementById('f-mahlgrad');
+    el.value = values.mahlgrad;
+    el.classList.remove('prefilled');
+  }
+  if (values.temp) {
+    const el = document.getElementById('f-temp');
+    el.value = values.temp;
+    el.classList.remove('prefilled');
+  }
+  if (values.pi) {
+    const el = document.getElementById('f-pi');
+    el.value = values.pi;
+    el.classList.remove('prefilled');
+  }
+  updateLiveTip();
+}
+
+// ============================================================
+// AUTO-UPDATE CHECK
+// version.json wird bei jedem GitHub-Deploy neu geschrieben.
+// iOS PWA ignoriert location.reload(true) → stattdessen location.replace()
+// mit Timestamp: zwingt WKWebView zu echter Netzwerk-Anfrage.
+// ============================================================
+(function(){
+  // Cache-Buster-Parameter aus URL entfernen (nach Update-Redirect)
+  if(location.search.match(/_r=\d+/)){
+    history.replaceState(null,'',location.pathname);
+  }
+
+  const BUILD_KEY='app_build';
+  fetch('./version.json?t='+Date.now())
+    .then(r=>r.json())
+    .then(function(json){
+      const newBuild=json.v||APP_VERSION;
+      const stored=localStorage.getItem(BUILD_KEY);
+      if(stored && stored!==newBuild){
+        localStorage.setItem(BUILD_KEY,newBuild);
+        // Alle Caches löschen
+        if(window.caches) caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k);});});
+        // location.replace mit Timestamp: umgeht iOS PWA Cache zuverlässig
+        location.replace(location.pathname+'?_r='+Date.now());
+      } else {
+        if(!stored){
+          const t=document.getElementById('sw-toast');
+          t.textContent='v'+APP_VERSION+' geladen ✓';
+          t.style.display='block';
+          setTimeout(function(){t.style.display='none';},3000);
+        }
+        localStorage.setItem(BUILD_KEY,newBuild);
+      }
+    })
+    .catch(function(){
+      // Offline oder version.json fehlt → einfach weitermachen
+    });
+})();
+
+// ============================================================
+// WEIGHMYBRU² WAAGE
+// ============================================================
+const scale = {
+  url: null, connected: false,
+  weight: 0, timerMs: 0, timerRunning: false, _poll: null,
+
+  async _req(path, method) {
+    const r = await fetch(this.url + path, {
+      method: method || 'GET', mode: 'cors',
+      signal: AbortSignal.timeout(2500)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r;
+  },
+  async dashboard() { return (await this._req('/api/dashboard')).json(); },
+  async tare()       { return this._req('/api/tare',         'POST'); },
+  async startTimer() { return this._req('/api/timer/start',  'POST'); },
+  async stopTimer()  { return this._req('/api/timer/stop',   'POST'); },
+  async resetTimer() { return this._req('/api/timer/reset',  'POST'); },
+
+  startPoll() {
+    if (this._poll) return;
+    this._poll = setInterval(async () => {
+      try {
+        const d = await this.dashboard();
+        this.weight = d.weight || 0;
+        this.timerMs = d.timer_elapsed || 0;
+        this.timerRunning = !!d.timer_running;
+        scaleUpdateLive();
+      } catch(e) {}
+    }, 200);
+  },
+  stopPoll() { if (this._poll) { clearInterval(this._poll); this._poll = null; } }
+};
+
+function scaleConnect() {
+  const raw = (document.getElementById('scale-ip-input').value.trim()) || 'weighmybru.local';
+  scale.url = raw.startsWith('http') ? raw : 'http://' + raw;
+  const err = document.getElementById('scale-conn-err');
+  const sta = document.getElementById('scale-conn-status');
+  err.textContent = 'Verbinde…';
+  scale.dashboard()
+    .then(() => {
+      scale.connected = true;
+      settings.scaleUrl = scale.url;
+      saveSettings();
+      err.textContent = '';
+      sta.innerHTML = `<span class="scale-dot on"></span>Verbunden · ${raw}`;
+      scaleRenderBrewBar();
+    })
+    .catch(e => {
+      scale.connected = false;
+      err.textContent = 'Fehler: ' + e.message + ' · Manuelle Eingabe weiterhin möglich';
+      sta.innerHTML = `<span class="scale-dot off"></span>Nicht verbunden`;
+      scaleRenderBrewBar();
+    });
+}
+
+async function scaleStartBrew() {
+  try {
+    await scale.tare();
+    await scale.resetTimer();
+    await scale.startTimer();
+    scale.startPoll();
+    scaleRenderBrewBar();
+  } catch(e) {
+    const s = document.getElementById('scale-brew-status');
+    if (s) s.textContent = 'Fehler: ' + e.message;
+  }
+}
+
+async function scaleStopBrew() {
+  try {
+    await scale.stopTimer();
+    scale.stopPoll();
+    document.getElementById('f-doseOut').value = scale.weight.toFixed(1);
+    if (scale.timerMs > 0) document.getElementById('f-zeit').value = Math.round(scale.timerMs / 1000);
+    updateRatio(); updateLiveTip();
+    scaleRenderBrewBar();
+  } catch(e) {
+    const s = document.getElementById('scale-brew-status');
+    if (s) s.textContent = 'Fehler: ' + e.message;
+  }
+}
+
+async function scaleTare() { try { await scale.tare(); } catch(e) {} }
+
+function scaleRenderBrewBar() {
+  const bar = document.getElementById('scale-brew-bar');
+  if (!bar) return;
+  if (!scale.connected) { bar.style.display = 'none'; return; }
+  bar.innerHTML = `<div class="scale-bar">
+    <div class="scale-live">
+      <div class="scale-live-group"><div class="scale-live-label">Yield Aus</div><div class="scale-live-val" id="scale-w">—</div></div>
+      <div class="scale-live-group"><div class="scale-live-label">Zeit</div><div class="scale-live-val" id="scale-t">—</div></div>
+      <div class="scale-live-group"><div class="scale-live-label">Status</div><div class="scale-live-val" id="scale-brew-status" style="font-size:calc(.68rem*var(--font-scale));color:var(--mid)">bereit</div></div>
+    </div>
+    <div class="scale-btns">
+      <button class="scale-btn" onclick="scaleTare()">⊘ Tara</button>
+      <button class="scale-btn start" onclick="scaleStartBrew()">▶ Start</button>
+      <button class="scale-btn stop" onclick="scaleStopBrew()">■ Stopp & übernehmen</button>
+    </div>
+  </div>`;
+  bar.style.display = 'block';
+}
+
+function scaleUpdateLive() {
+  const w = document.getElementById('scale-w');
+  const t = document.getElementById('scale-t');
+  const s = document.getElementById('scale-brew-status');
+  if (w) w.textContent = scale.weight.toFixed(1) + 'g';
+  if (t) t.textContent = (scale.timerMs / 1000).toFixed(1) + 's';
+  if (s) s.textContent = scale.timerRunning ? '⏱ läuft' : '■ gestoppt';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildPills();
+renderDashboard();
+// Versionsnummer in Einstellungen dynamisch setzen
+(function(){const el=document.getElementById('version-display');if(el)el.textContent='v'+APP_VERSION+' · Mai 2026';})();
+// Auto-connect wenn direkt vom WeighMyBru geladen
+(function(){
+  const h = window.location.hostname;
+  if (h === "weighmybru.local" || h.startsWith("192.168.")) {
+    const ipEl = document.getElementById("scale-ip-input");
+    if (ipEl && !ipEl.value) ipEl.value = window.location.hostname;
+    setTimeout(scaleConnect, 500);
+  }
+})();
+
+// Waage aus Settings wiederherstellen
+(function(){
+  if(settings.scaleUrl){
+    const ipEl=document.getElementById('scale-ip-input');
+    if(ipEl) ipEl.value=settings.scaleUrl.replace(/^https?:\/\//,'');
+  }
+})();
+</script>
+</body>
+</html>
