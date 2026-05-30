@@ -56,7 +56,7 @@ jobs:
         # Extract build info
         BUILD_NUMBER=$GITHUB_RUN_NUMBER
         COMMIT_HASH=$(git rev-parse --short HEAD)
-        BUILD_DATE=$(date -u +"%b %d %Y")
+        BUILD_DATE=$(date -u +"%Y-%m-%d")
         BUILD_TIME=$(date -u +"%H:%M:%S")
         
         echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_OUTPUT
