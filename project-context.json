@@ -1,0 +1,266 @@
+{
+  "project": {
+    "name": "WeighMyBru2",
+    "description": "ESP32-basierte Espresso-Waage mit Web-Interface und Espresso-Trainer-App",
+    "repository": "https://github.com/AGMuc/weighmybru2",
+    "hardware": {
+      "microcontroller": "ESP32 (SuperMini)",
+      "sensor": "HX711 Wägezelle",
+      "display": "OLED I2C",
+      "connectivity": ["WiFi (AP + STA)", "BLE (GaggiMate-kompatibel)"],
+      "power": "LiPo Akku mit Spannungsüberwachung",
+      "pins": {
+        "HX711_DATA": "configurable via BoardConfig.h",
+        "HX711_CLOCK": "configurable via BoardConfig.h",
+        "TOUCH_TARE": "configurable via BoardConfig.h",
+        "TOUCH_SLEEP": "configurable via BoardConfig.h",
+        "BATTERY": "GPIO7",
+        "I2C_SDA": "configurable via BoardConfig.h",
+        "I2C_SCL": "configurable via BoardConfig.h"
+      }
+    },
+    "framework": "PlatformIO + Arduino",
+    "build_system": "platformio.ini",
+    "flash_commands": {
+      "firmware": "pio run -t upload --upload-port COM5",
+      "filesystem": "pio run -t uploadfs --upload-port COM5",
+      "serial_port": "COM5 (Windows)"
+    }
+  },
+  "architecture": {
+    "firmware": {
+      "language": "C++",
+      "entry_point": "src/main.cpp",
+      "modules": {
+        "Scale": {
+          "files": ["src/Scale.cpp", "include/Scale.h"],
+          "purpose": "HX711 Wägezelle auslesen, Kalibrierung, Tare"
+        },
+        "FlowRate": {
+          "files": ["src/FlowRate.cpp", "include/FlowRate.h"],
+          "purpose": "Flowrate-Berechnung aus Gewichtsänderungen",
+          "parameters": {
+            "FLOWRATE_AVG_WINDOW": 20,
+            "WEIGHT_DEADBAND": 0.08,
+            "MIN_DELTA_TIME": 0.15,
+            "ZERO_THRESHOLD": 0.08,
+            "RAPID_CHANGE_THRESHOLD": 1.5,
+            "NEGATIVE_CHANGE_THRESHOLD": 0.5
+          },
+          "features": [
+            "Circular buffer mit gewichtetem Durchschnitt",
+            "Tare-Transition-Erkennung",
+            "Timer-basiertes Averaging (Start/Stop)",
+            "Pause/Resume für Tare-Operationen"
+          ]
+        },
+        "WebServer": {
+          "files": ["src/WebServer.cpp", "include/WebServer.h"],
+          "purpose": "REST API + statische Dateien via LittleFS",
+          "port": 80,
+          "library": "ESPAsyncWebServer"
+        },
+        "Display": {
+          "files": ["src/Display.cpp", "include/Display.h"],
+          "purpose": "OLED-Anzeige, Timer-Steuerung"
+        },
+        "BluetoothScale": {
+          "files": ["src/BluetoothScale.cpp", "include/BluetoothScale.h"],
+          "purpose": "BLE-Schnittstelle für GaggiMate und andere Apps"
+        },
+        "WiFiManager": {
+          "files": ["src/WiFiManager.cpp", "include/WiFiManager.h"],
+          "purpose": "WiFi AP/STA Mode, Credentials, mDNS"
+        },
+        "PowerManager": {
+          "files": ["src/PowerManager.cpp", "include/PowerManager.h"],
+          "purpose": "Deep Sleep, Touch-Wakeup, Stromsparen"
+        },
+        "BatteryMonitor": {
+          "files": ["src/BatteryMonitor.cpp", "include/BatteryMonitor.h"],
+          "purpose": "Akkuspannung messen, Prozent berechnen, Kalibrierung"
+        },
+        "TouchSensor": {
+          "files": ["src/TouchSensor.cpp", "include/TouchSensor.h"],
+          "purpose": "Kapazitiver Touch-Sensor für Tare"
+        },
+        "Calibration": {
+          "files": ["include/Calibration.h"],
+          "purpose": "Kalibrierungskonstanten"
+        }
+      },
+      "loop_timing": {
+        "weight_update": "50ms (20Hz)",
+        "ble_update": "100ms (10Hz)",
+        "display_update": "100ms (10Hz)",
+        "wifi_status_check": "30s",
+        "main_delay": "10ms"
+      },
+      "cpu_frequency": "80MHz (power optimized)"
+    },
+    "web_interface": {
+      "files": {
+        "dashboard": "data/index.html",
+        "espresso_app": "data/espresso.html",
+        "settings": "data/settings.html",
+        "calibration": "data/calibration.html",
+        "updates": "data/updates.html"
+      },
+      "storage": "LittleFS auf ESP32 Flash",
+      "css": "Tailwind CSS (data/output.css)"
+    },
+    "api_endpoints": {
+      "GET /api/dashboard": {
+        "response": {
+          "weight": "float (2 Dezimalstellen)",
+          "flowrate": "float (2 Dezimalstellen)",
+          "scale_connected": "boolean",
+          "timer_running": "boolean",
+          "timer_elapsed": "unsigned long (ms)",
+          "timer_avg_flowrate": "float | null",
+          "battery_voltage": "float",
+          "battery_percentage": "int",
+          "battery_status": "string",
+          "wifi_signal_strength": "int",
+          "bluetooth_connected": "boolean",
+          "device_version": "string"
+        }
+      },
+      "POST /api/tare": "Tariert Waage, resettet Timer + FlowRate",
+      "POST /api/timer/start": "Startet Timer",
+      "POST /api/timer/stop": "Stoppt Timer",
+      "POST /api/timer/reset": "Resettet Timer",
+      "GET /api/weight": "Aktuelles Gewicht (text/plain)",
+      "GET /api/weight-fast": "Gewicht mit 2 Dezimalstellen (minimal)",
+      "GET /api/brew/weight": "Gewicht mit 1 Dezimalstelle (ultra-fast)",
+      "GET /api/brew/status": "Minimales JSON: {w, f}",
+      "GET /api/flowrate": "Aktuelle Flowrate (text/plain)",
+      "POST /api/calibrate": "Kalibrierung mit knownWeight",
+      "GET /api/battery": "Akku-Status",
+      "GET /api/wifi-status": "WiFi-Status",
+      "POST /api/wifi-creds": "WiFi-Credentials speichern",
+      "GET /api/device/info": "Geräte-Info (Version, Board, etc.)",
+      "GET /api/filter-settings": "Filter-Parameter",
+      "POST /api/filter-settings": "Filter-Parameter ändern"
+    }
+  },
+  "espresso_app": {
+    "file": "data/espresso.html",
+    "version": "4.5.2",
+    "description": "Standalone PWA Espresso-Trainer mit Waagen-Integration",
+    "features": [
+      "Kaffee-Verwaltung (vordefiniert + custom)",
+      "Bezug-Tracking (Dose, Yield, Zeit, Mahlgrad, Temp, Pre-Infusion)",
+      "Geführte Verkostung (6 Schritte, bohnenadaptiv)",
+      "Geschmacksprofil (Säure, Bitterkeit, Süße, Körper, Nachklang - 7-Dot-Skala)",
+      "Aromen + Crema-Bewertung",
+      "Score-Berechnung (0-100)",
+      "KI-Hilfe (Prompt-Generator für externe KI)",
+      "Rangliste mit Vergleich",
+      "Flow-Analyse (Ø, Peak, Channeling-Erkennung, Sparkline)",
+      "Live-Tipps basierend auf Eingaben",
+      "Trainer-Empfehlungen (Bohnenspezifisch)",
+      "CSV/Text Export",
+      "Backup/Restore (JSON)",
+      "Themes (Dark/Light/Contrast)",
+      "Schriftgröße anpassbar"
+    ],
+    "waagen_integration": {
+      "connection": "HTTP über WiFi (IP oder weighmybru.local)",
+      "polling_interval_ms": 200,
+      "request_timeout_ms": 2500,
+      "auto_mode": {
+        "start_threshold_gs": 0.45,
+        "start_consecutive_readings": 4,
+        "stop_threshold_gs": 0.1,
+        "stop_consecutive_readings": 15,
+        "cooldown_frames": 30,
+        "description": "Erkennt automatisch Bezugsstart bei Flow > 0.45 g/s (4 Readings), tariert, startet Timer. Stoppt bei Flow < 0.1 g/s für ~3s, überträgt Werte ins Formular."
+      },
+      "manual_mode": {
+        "start_button": "▶ Start (tariert + Timer)",
+        "stop_button": "■ Stopp & übernehmen (Werte ins Formular)"
+      },
+      "flow_color_indicator": {
+        "green_range": "0.45 - 2.0 g/s",
+        "red": "außerhalb des Bereichs"
+      }
+    },
+    "data_storage": {
+      "mechanism": "localStorage",
+      "keys": {
+        "espresso_pwa_v2": "Alle Bezugsdaten (Shots pro Kaffee)",
+        "espresso_custom_v1": "Custom Kaffee-Namen",
+        "espresso_settings_v1": "App-Einstellungen (Theme, Font, ScaleURL)"
+      }
+    },
+    "bean_profiles": {
+      "description": "Bohnenprofile mit Röstgrad, Blend-Info, Aromen-Erwartungen",
+      "used_for": [
+        "Verkostungs-Schritte anpassen (Dark vs Medium Roast)",
+        "Trainer-Empfehlungen berechnen",
+        "Zielwerte für Säure/Bitter/Körper setzen"
+      ]
+    },
+    "tabs": ["Dashboard", "Bezug (Bewertung)", "Rangliste", "Einstellungen"]
+  },
+  "known_issues_fixed": {
+    "v4.5.2": [
+      {
+        "issue": "Auto-Flow Trigger zu spät",
+        "description": "Der Auto-Modus erkannte den Bezugsstart erst bei 0.8 g/s, was zu spät war",
+        "fix": "Schwellwert auf 0.45 g/s gesenkt (espresso.html Zeile ~2417)",
+        "files_changed": ["data/espresso.html"]
+      },
+      {
+        "issue": "Stop & übernehmen Button funktioniert nicht",
+        "description": "Wenn der API-Call /api/timer/stop fehlschlug (Timeout, Netzwerkfehler), wurden Werte nie ins Formular übertragen und autoState blieb auf 'brewing'. Der Error-Handler versuchte ein nicht-existierendes DOM-Element 'scale-brew-status' zu beschreiben.",
+        "fix": "Werte werden jetzt IMMER übernommen, unabhängig vom API-Call-Ergebnis. try/catch umschließt nur den API-Call, nicht die Wertübernahme.",
+        "files_changed": ["data/espresso.html"]
+      },
+      {
+        "issue": "Waage startet neu (ESP32 Crash)",
+        "description": "Polling alle 200ms mit 2500ms Timeout führte zu Request-Stacking. Mehrere gleichzeitige HTTP-Requests überfluteten den ESP32 (RAM/Heap-Erschöpfung → Watchdog-Reset).",
+        "fix": "_pollBusy Guard verhindert parallele Requests. Redundanter resetTimer()-Call entfernt (tare() resettet Timer bereits → 1 weniger HTTP-Request pro Brew-Start).",
+        "files_changed": ["data/espresso.html"]
+      },
+      {
+        "issue": "Flowrate-Präzision zu gering für 0.45-Erkennung",
+        "description": "Dashboard-API sendete flowrate mit nur 1 Dezimalstelle (z.B. 0.5 statt 0.45)",
+        "fix": "Auf 2 Dezimalstellen erhöht in WebServer.cpp",
+        "files_changed": ["src/WebServer.cpp"]
+      }
+    ]
+  },
+  "equipment_setup": {
+    "machine": "Lelit Victoria PL91T (OPV ~9 Bar)",
+    "grinder": "Eureka Mignon Libra (Finecoar Dial)",
+    "basket": "IMS B702TH26.5M (18-20g Dark)",
+    "puck_screen": "3BOMBER 0.8mm Mesh",
+    "pre_infusion": "0-8s über Bezugstaste geregelt",
+    "reference_shots": {
+      "A_kraeftig": "18g → 36g / 30s = 1:2",
+      "B_sweetspot": "18g → 42g / 30s = 1:2.33"
+    }
+  },
+  "development": {
+    "branch": "claude/cool-franklin-4WmeK",
+    "build": {
+      "firmware_flash": "pio run -t upload --upload-port COM5",
+      "filesystem_flash": "pio run -t uploadfs --upload-port COM5",
+      "both_needed": true,
+      "note": "upload flasht C++ Firmware, uploadfs flasht HTML/CSS/JS (LittleFS)"
+    },
+    "important_constants": {
+      "calibration_factor": 4195.712891,
+      "cpu_freq_mhz": 80,
+      "display_brightness": 128,
+      "low_battery_threshold_v": 3.2,
+      "ble_update_rate_ms": 100,
+      "weight_update_rate_ms": 50,
+      "display_refresh_rate_ms": 100
+    },
+    "cors": "Erlaubt (Access-Control-Allow-Origin: *) für externe PWA-Zugriffe",
+    "mdns": "weighmybru.local"
+  }
+}

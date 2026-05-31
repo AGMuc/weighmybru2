@@ -10,7 +10,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Espresso Trainer v4.5</title>
+<title>Espresso Trainer v4.5.2</title>
 <style>
 :root { --font-scale:1; --safe-top:env(safe-area-inset-top,44px); --safe-bot:env(safe-area-inset-bottom,20px); }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -507,7 +507,7 @@ textarea:focus{border-color:var(--crema);}
 // ============================================================
 // CONSTANTS & DATA
 // ============================================================
-const APP_VERSION='4.5.1';
+const APP_VERSION='4.5.2';
 const KAFFEES_DEFAULT=["Gorilla Superbar Crema","Dinzler Roma","Dinzler il Gustoso","Dinzler Lazise","Dinzler Modena","Dinzler Venezia","Geisenhofer House Blend","Passalacqua Mehari","Kimbo Espresso Napoli"];
 const AROMEN=["Schokolade","Nuss","Karamell","Frucht","Blume","Asche","Rauch","Gewürz","Tabak","Holz","Zitrus","Beere","Vanille"];
 const CREMAS=["Dicht & Haselnuss ✓","Tigerstreifig ★","Dunkel & Stark","Hell & Dünn","Grobporig"];
@@ -1034,12 +1034,12 @@ function generateTips(shot){
 
   // Ø-Flow zu hoch → Mahlung zu grob / zu wenig Widerstand
   if(flowAvg&&flowAvg>2.2&&!flowChannels.length&&tips.length<2){
-    tips.push({tip:`Ø-Flow ${flowAvg} g/s (Ziel 0.8–2.0 g/s): Wasser fließt zu schnell durch den Puck. Mahlung 1 Klick feiner (Eureka Libra: Mahlrad nach unten). Tamping-Druck etwas erhöhen. Bei Ratio >1:2,5 auch Output früher stoppen.`,followup:"War der Flow danach gleichmäßiger?"});
+    tips.push({tip:`Ø-Flow ${flowAvg} g/s (Ziel 0.45–2.0 g/s): Wasser fließt zu schnell durch den Puck. Mahlung 1 Klick feiner (Eureka Libra: Mahlrad nach unten). Tamping-Druck etwas erhöhen. Bei Ratio >1:2,5 auch Output früher stoppen.`,followup:"War der Flow danach gleichmäßiger?"});
   }
 
   // Ø-Flow zu niedrig → Mahlung zu fein / zu fest getampt
   if(flowAvg&&flowAvg<0.7&&tips.length<2){
-    tips.push({tip:`Ø-Flow ${flowAvg} g/s (Ziel 0.8–2.0 g/s): Puck bietet zu viel Widerstand. Mahlung 1 Klick gröber (Eureka Libra: Mahlrad nach oben). Tamping-Druck leicht reduzieren. Bezugszeit >38s ist ein weiterer Hinweis.`,followup:"War der Flow danach höher?"});
+    tips.push({tip:`Ø-Flow ${flowAvg} g/s (Ziel 0.45–2.0 g/s): Puck bietet zu viel Widerstand. Mahlung 1 Klick gröber (Eureka Libra: Mahlrad nach oben). Tamping-Druck leicht reduzieren. Bezugszeit >38s ist ein weiterer Hinweis.`,followup:"War der Flow danach höher?"});
   }
 
   // Flow sehr ungleichmäßig (hoher Peak relativ zum Ø) aber kein klares Channeling
@@ -2397,9 +2397,12 @@ const scale = {
   async stopTimer()  { return this._req('/api/timer/stop',   'POST'); },
   async resetTimer() { return this._req('/api/timer/reset',  'POST'); },
 
+  _pollBusy: false,
   startPoll() {
     if (this._poll) return;
     this._poll = setInterval(async () => {
+      if (this._pollBusy) return;
+      this._pollBusy = true;
       try {
         const d = await this.dashboard();
         this.weight = d.weight || 0;
@@ -2411,7 +2414,7 @@ const scale = {
           if (this._cooldown > 0) {
             this._cooldown--;
           } else if (this.autoState === 'idle') {
-            if (this.flowrate > 0.8) {
+            if (this.flowrate > 0.45) {
               this._flowHigh++;
               if (this._flowHigh >= 4) {
                 // First drops detected → auto-start
@@ -2421,7 +2424,6 @@ const scale = {
                 this._flowSamples = []; // neue Flow-Aufzeichnung starten
                 try {
                   await this.tare();
-                  await this.resetTimer();
                   await this.startTimer();
                 } catch(e) {}
                 scaleRenderBrewBar();
@@ -2456,6 +2458,7 @@ const scale = {
 
         scaleUpdateLive();
       } catch(e) {}
+      this._pollBusy = false;
     }, 200);
   },
   stopPoll() { if (this._poll) { clearInterval(this._poll); this._poll = null; } },
@@ -2531,35 +2534,26 @@ function scaleConnect() {
 async function scaleStartBrew() {
   try {
     await scale.tare();
-    await scale.resetTimer();
     await scale.startTimer();
-    scale.autoState = 'brewing';
-    scale._flowLow = 0;
-    scale._cooldown = 0;
-    scale._flowSamples = []; // neue Flow-Aufzeichnung starten
-    scale.lastBrew = null;
-    scale.startPoll(); // no-op if already polling
-    scaleRenderBrewBar();
-  } catch(e) {
-    const s = document.getElementById('scale-brew-status');
-    if (s) s.textContent = 'Fehler: ' + e.message;
-  }
+  } catch(e) { /* API-Fehler ignorieren – manueller Start soll trotzdem funktionieren */ }
+  scale.autoState = 'brewing';
+  scale._flowLow = 0;
+  scale._cooldown = 0;
+  scale._flowSamples = [];
+  scale.lastBrew = null;
+  scale.startPoll();
+  scaleRenderBrewBar();
 }
 
 async function scaleStopBrew() {
-  try {
-    await scale.stopTimer();
-    scale.lastBrew = analyzeFlow(scale._flowSamples); // Flow-Analyse finalisieren
-    if (scale.weight !== 0) document.getElementById('f-doseOut').value = scale.weight.toFixed(1);
-    if (scale.timerMs > 0) document.getElementById('f-zeit').value = Math.round(scale.timerMs / 1000);
-    updateRatio(); updateLiveTip();
-    scale.autoState = 'done';
-    scale._cooldown = 30;
-    scaleRenderBrewBar();
-  } catch(e) {
-    const s = document.getElementById('scale-brew-status');
-    if (s) s.textContent = 'Fehler: ' + e.message;
-  }
+  try { await scale.stopTimer(); } catch(e) { /* API-Fehler ignorieren – Werte trotzdem übernehmen */ }
+  scale.lastBrew = analyzeFlow(scale._flowSamples);
+  if (scale.weight !== 0) document.getElementById('f-doseOut').value = scale.weight.toFixed(1);
+  if (scale.timerMs > 0) document.getElementById('f-zeit').value = Math.round(scale.timerMs / 1000);
+  updateRatio(); updateLiveTip();
+  scale.autoState = 'done';
+  scale._cooldown = 30;
+  scaleRenderBrewBar();
 }
 
 async function scaleTare() { try { await scale.tare(); } catch(e) {} }
@@ -2607,7 +2601,7 @@ function scaleUpdateLive() {
   if (f) {
     if (scale.flowrate > 0.05) {
       f.textContent = scale.flowrate.toFixed(2) + 'g/s';
-      f.style.color = (scale.flowrate >= 0.8 && scale.flowrate <= 2.0) ? 'var(--green)' : 'var(--red)';
+      f.style.color = (scale.flowrate >= 0.45 && scale.flowrate <= 2.0) ? 'var(--green)' : 'var(--red)';
     } else {
       f.textContent = '—';
       f.style.color = '';
