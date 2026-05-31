@@ -146,7 +146,7 @@ void setupWebServer(Scale &scale, FlowRate &flowRate, BluetoothScale &bluetoothS
   server.on("/api/dashboard", HTTP_GET, [&scale, &flowRate, &display, &battery, &bluetoothScale](AsyncWebServerRequest *request) {
     String json = "{";
     json += "\"weight\":" + String(scale.getCurrentWeight(), 2) + ",";
-    json += "\"flowrate\":" + String(flowRate.getFlowRate(), 1) + ",";
+    json += "\"flowrate\":" + String(flowRate.getFlowRate(), 2) + ",";
     json += "\"scale_connected\":" + String(scale.isHX711Connected() ? "true" : "false") + ",";
     json += "\"filter_state\":\"" + scale.getFilterState() + "\",";
     
